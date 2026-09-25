@@ -93,7 +93,9 @@ The tests are split by role rather than kept in one file:
 |------|-------|
 | `harness_test.go` | Connecting to and verifying the RPC, funding accounts, building, simulating, assembling, submitting and polling; decoding the submitted envelope's credential arm; rendering host failures and extracting their error details. |
 | `transfer_test.go` | The native-SAC `transfer(from, to, amount)` operation builder and small `ScVal`/`ScAddress` helpers. |
-| `scenario_ab_test.go` | Scenarios A and B, plus the two shared runners: `runTransfer` (record, sign, enforce, assemble, submit) and `runTransferExpectingFailure` for runs meant to be rejected. |
+| `runner_test.go` | The single scenario runner and its parameter table: the record/sign/enforce/assemble/submit shape shared by every scenario, plus decoded-entry and signed-entry diagnostics. |
+| `runner_regression_test.go` | The deterministic regression fixture for rejection-path resource headroom. |
+| `scenario_ab_test.go` | Scenarios A and B, including the V2 route decision. |
 | `scenario_c_test.go` | Scenario C, the multisig account setup, and the single-signature control. |
 | `scenario_de_test.go` | Scenarios D and E and the delegates flow that wraps, signs per address, and submits. Scenarios F to I call the same flow. |
 | `scenario_fghi_test.go` | Scenarios F to I: the two session-key scenarios and the two threshold scenarios, each asserting the contract's own error code where it expects a refusal. |
