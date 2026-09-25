@@ -1,6 +1,7 @@
 package soroauth
 
 import (
+	"errors"
 	"bytes"
 	"context"
 	"fmt"
@@ -263,6 +264,65 @@ func (s *accountMultiSigner) Sign(ctx context.Context, _ xdr.HashIdPreimage, pay
 	}
 
 	return scVec(signatures...), nil
+}
+
+// PasskeySignerOption configures options for passkey signers.
+type PasskeySignerOption func(*passkeySignerConfig)
+
+type passkeySignerConfig struct {
+	requireUserPresence     bool
+	requireUserVerification bool
+}
+
+// RequireUserPresence returns a PasskeySignerOption that insists on user presence (UP, bit 0 of authenticatorData).
+func RequireUserPresence(required bool) PasskeySignerOption {
+	return func(cfg *passkeySignerConfig) {
+		cfg.requireUserPresence = required
+	}
+}
+
+// RequireUserVerification returns a PasskeySignerOption that insists on user verification (UV, bit 2 of authenticatorData).
+func RequireUserVerification(required bool) PasskeySignerOption {
+	return func(cfg *passkeySignerConfig) {
+		cfg.requireUserVerification = required
+	}
+}
+
+// ErrVerificationFailed is returned when passkey assertion verification fails (e.g. required UP or UV flags are missing).
+var ErrVerificationFailed = errors.New("verification failed")
+
+// NewPasskeySigner returns a Signer for passkey / WebAuthn assertions, validating user presence (UP) and user verification (UV) flags from the authenticator data when requested.
+// By default, neither UP nor UV is required (off by default).
+func NewPasskeySigner(address string, authenticatorData []byte, fn func(ctx context.Context, preimage xdr.HashIdPreimage, payload [32]byte) (xdr.ScVal, error), opts ...PasskeySignerOption) Signer {
+	var cfg passkeySignerConfig
+	for _, opt := range opts {
+		if opt != nil {
+			opt(&cfg)
+		}
+	}
+	return &signerFunc{
+		address: address,
+		fn: func(ctx context.Context, preimage xdr.HashIdPreimage, payload [32]byte) (xdr.ScVal, error) {
+			if cfg.requireUserPresence || cfg.requireUserVerification {
+				if len(authenticatorData) < 37 {
+					return xdr.ScVal{}, fmt.Errorf("soroauth: passkey signer: authenticatorData too short (%d bytes): %w", len(authenticatorData), ErrVerificationFailed)
+				}
+				flags := authenticatorData[32]
+				up := (flags & 0x01) != 0
+				uv := (flags & 0x04) != 0
+				if cfg.requireUserPresence && !up {
+					return xdr.ScVal{}, fmt.Errorf("soroauth: passkey signer: user presence (UP) required but not set in flags 0x%02x: %w", flags, ErrVerificationFailed)
+				}
+				if cfg.requireUserVerification && !uv {
+					return xdr.ScVal{}, fmt.Errorf("soroauth: passkey signer: user verification (UV) required but not set in flags 0x%02x: %w", flags, ErrVerificationFailed)
+				}
+			}
+			if fn == nil {
+				return xdr.ScVal{}, fmt.Errorf("soroauth: passkey sign: %w", ErrMissingSigner)
+			}
+			return fn(ctx, preimage, payload)
+		},
+	}
 }
 
 // signerFunc adapts a plain function to the Signer interface.
