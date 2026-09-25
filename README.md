@@ -44,19 +44,46 @@ Every target fails loudly: `make fmt` exits non-zero if any file is not
 gofmt-clean, and `make vectors-check` exits non-zero if regeneration changes a
 committed vector. `make help` lists the targets.
 
+## Container image
+
+A container image is published on GHCR for every release tag, for CI systems
+that need to sign an entry without installing a Go toolchain:
+
+```sh
+docker pull ghcr.io/soroauth/soroauth-go:v0.1.0   # or :latest for the newest release
+
+docker run --rm -e SEED=SABC... ghcr.io/soroauth/soroauth-go:v0.1.0 \
+  sign --entry <base64> --valid-until 1234567 --network testnet --secret-env SEED
+```
+
+The seed is passed the same way it is on the command line: a named
+environment variable, read only by `--secret-env`, never a flag value. The
+image itself never contains any key material, and nothing bakes a seed into
+a layer. That said, an environment variable set on a running container is
+visible to anything that can inspect that container (`docker inspect`,
+`/proc/<pid>/environ` from the host, a sidecar with the same namespace), the
+same as it would be for any other process — treat container secret injection
+with the same care you would give a plain environment variable anywhere
+else. The image is built from `Dockerfile` at the repository root by
+`.github/workflows/release.yml` on every `v*` tag push.
+
 ## CLI
 
-Every subcommand accepts `--json` to emit a single JSON object on stdout. On
-success the object carries the result fields; on failure it carries an `error`
-field. Nothing else is written to stdout in JSON mode, so scripts can safely
-pipe the output to `jq` without stripping usage text.
+Every subcommand that produces output accepts `--json` to emit a single JSON
+object (or, for `tree`, either the JSON report or one of its two text
+renderings — see below) on stdout. On success the object carries the result
+fields; on failure it carries an `error` field. Nothing else is written to
+stdout in JSON mode, so scripts can safely pipe the output to `jq` without
+stripping usage text. `tui` is the one exception: it is an interactive
+terminal program, not something a script drives, so it has no `--json` mode.
 
 | subcommand | success fields | failure field |
 |---|---|---|
 | `payload` | `preimage`, `payload` | `error` |
 | `sign` | `signed_entry` | `error` |
 | `delegates` | `wrapped_entry` | `error` |
-| `inspect` | (the `EntryInfo` struct) | `error` |
+| `inspect` | (the `EntryInfo` struct — this was already `inspect`'s only output; `--json` is accepted for consistency and does not change it) | `error` |
+| `tree` | (the `EntryInfo` struct, same shape as `inspect`; without `--json` it prints an ASCII or DOT rendering instead) | `error` |
 | `doctor` | `checks`, `ok` | (checks carry their own `pass`/`detail`; see below) |
 | `cross-compile` | `target`, `size`, `sha256` (one per line) | `error` |
 
@@ -80,10 +107,40 @@ SEED=SABC... ./soroauth sign \
   --delegate GAAAA... --delegate GBBBB... --json |
   jq -r .wrapped_entry
 
-# Inspect an entry as one compact JSON object, and pick fields out of it
-./soroauth inspect --entry <base64> --json |
+# Inspect an entry (output is JSON either way) and pick fields out of it
+./soroauth inspect --entry <base64> |
   jq -r '"\(.credential_type) \(.address) expires=\(.valid_until_ledger)"'
 ```
+
+### Tree — render a delegate tree
+
+`inspect` reports an entry's structure as JSON; `tree` renders the same
+structure — the delegates-arm tree in particular — as something a person can
+read at a glance, either for a terminal or for embedding in docs.
+
+```sh
+# Terminal-readable, indented ASCII
+./soroauth tree --entry <base64>
+
+# Graphviz DOT, for docs
+./soroauth tree --entry <base64> --format dot | dot -Tsvg -o tree.svg
+
+# Structured, same shape as "inspect"
+./soroauth tree --entry <base64> --json
+```
+
+```
+GTOP (unsigned)
+├── GA... (signed)
+│   └── GA... (unsigned)
+└── GB... (unsigned)
+```
+
+One address appearing at more than one nesting level is legal under CAP-71-01
+(the same key delegating twice in one tree), and `tree` never merges those
+occurrences into a single node: each is printed in its own position, with its
+own signed/unsigned state, so a repeated address never reads as one node that
+somehow got signed twice.
 
 ### Doctor — check the local environment for common first-run problems
 

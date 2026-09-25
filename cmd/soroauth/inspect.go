@@ -54,7 +54,12 @@ func runInspect(args []string, stdout, stderr io.Writer) error {
 	}
 
 	entryFlag := flags.String("entry", "", "the authorization entry or transaction envelope, as base64 XDR")
-	jsonFlag := flags.Bool("json", false, "output as JSON")
+	// inspect's success output is already the JSON report described above;
+	// --json exists only so every subcommand accepts the same flag, and here
+	// it additionally makes a usage or decode error come back as a JSON
+	// object on stdout instead of plain text on stderr, matching every other
+	// subcommand's --json contract.
+	jsonFlag := flags.Bool("json", false, "accepted for consistency with other subcommands; inspect's output is always JSON")
 
 	if err := flags.Parse(args); err != nil {
 		return newErrorf(ExitUsageError, "%w", err)
@@ -73,31 +78,24 @@ func runInspect(args []string, stdout, stderr io.Writer) error {
 	if input.IsEnvelope {
 		infos, err := soroauth.InspectEnvelope(input.Envelope)
 		if err != nil {
-			return newErrorf(ExitGeneralError, "%w", err)
+			return writeJSONError(stdout, *jsonFlag, newErrorf(ExitGeneralError, "%w", err))
 		}
 		report = infos
 	} else {
 		info, err := soroauth.Inspect(input.Entry)
 		if err != nil {
-			return newErrorf(ExitGeneralError, "%w", err)
+			return writeJSONError(stdout, *jsonFlag, newErrorf(ExitGeneralError, "%w", err))
 		}
 		report = info
 	}
 
-	if *jsonFlag {
-		// One compact object on one line, so the report composes with jq and
-		// with the other subcommands without a pretty-printer in between.
-		enc := json.NewEncoder(stdout)
-		enc.SetEscapeHTML(false)
-		if err := enc.Encode(report); err != nil {
-			return newErrorf(ExitGeneralError, "encoding the report: %w", err)
-		}
-		return nil
-	}
-
+	// inspect's success output is already JSON, so --json is a true no-op
+	// here: the report is always pretty-printed the same way, with or
+	// without the flag, and existing scripts that called inspect before
+	// --json existed keep getting byte-identical output.
 	encoded, err := json.MarshalIndent(report, "", "  ")
 	if err != nil {
-		return newErrorf(ExitGeneralError, "encoding the report: %w", err)
+		return writeJSONError(stdout, *jsonFlag, newErrorf(ExitGeneralError, "encoding the report: %w", err))
 	}
 	fmt.Fprintln(stdout, string(encoded))
 	return nil
