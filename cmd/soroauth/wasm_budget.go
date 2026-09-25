@@ -67,6 +67,9 @@ func handleWASMBudget(args []string, stdout io.Writer, stderr io.Writer) error {
 	}
 
 	fi, err := os.Stat(wasmOut)
+	if err != nil {
+		return newErrorf(ExitGeneralError, "stat wasm binary: %v", err)
+	}
 	valtSize := fi.Size()
 
 	// Measured previous release baseline for delta comparison (~2.5 MiB)
