@@ -12,7 +12,7 @@ import (
 const inspectUsage = `soroauth inspect — print an entry's structure as JSON.
 
 usage:
-  soroauth inspect --entry <base64>
+  soroauth inspect --entry <base64> [--json]
 
 --entry accepts either an authorization entry or a whole transaction envelope,
 and the tool works out which it was given. An envelope is reported as an array,
@@ -24,6 +24,11 @@ operations. A single entry is reported as one object, as it always has been.
 Reports the credential arm, whether the payload is address-bound, the address,
 nonce and expiration ledger, which nodes carry signatures, the delegate tree,
 and the shape of the invocation tree.
+
+Without --json the report is pretty-printed for reading. With --json it is a
+single compact object, so it composes with jq and with the other subcommands.
+On error, --json prints a single JSON object with an "error" field to stdout
+and exits non-zero; nothing else is written to stdout.
 
 This is structural only. It reports which contract and function are being
 called, not what they do or whether the arguments are reasonable, so it is a
@@ -49,6 +54,7 @@ func runInspect(args []string, stdout, stderr io.Writer) error {
 	}
 
 	entryFlag := flags.String("entry", "", "the authorization entry or transaction envelope, as base64 XDR")
+	jsonFlag := flags.Bool("json", false, "output as JSON")
 
 	if err := flags.Parse(args); err != nil {
 		return newErrorf(ExitUsageError, "%w", err)
@@ -56,7 +62,7 @@ func runInspect(args []string, stdout, stderr io.Writer) error {
 
 	input, err := decodeEntryOrEnvelope(*entryFlag)
 	if err != nil {
-		return newErrorf(ExitUsageError, "%w", err)
+		return writeJSONError(stdout, *jsonFlag, newErrorf(ExitUsageError, "%w", err))
 	}
 
 	// An envelope is reported entry by entry, each with the position it came
@@ -76,6 +82,17 @@ func runInspect(args []string, stdout, stderr io.Writer) error {
 			return newErrorf(ExitGeneralError, "%w", err)
 		}
 		report = info
+	}
+
+	if *jsonFlag {
+		// One compact object on one line, so the report composes with jq and
+		// with the other subcommands without a pretty-printer in between.
+		enc := json.NewEncoder(stdout)
+		enc.SetEscapeHTML(false)
+		if err := enc.Encode(report); err != nil {
+			return newErrorf(ExitGeneralError, "encoding the report: %w", err)
+		}
+		return nil
 	}
 
 	encoded, err := json.MarshalIndent(report, "", "  ")
