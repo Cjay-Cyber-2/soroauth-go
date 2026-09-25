@@ -7,6 +7,46 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+**Delegate plans and stricter batch signing for `AuthorizeAll`**
+
+- `AuthorizeAll` now takes optional `AuthorizeAllOption`s. `WithDelegatePlans`
+  wraps a named address's entry in the delegates arm (via `WithDelegates`)
+  before signing, so using delegates through the batch helper no longer
+  means unpacking the batch, wrapping one entry by hand, and repacking. An
+  entry with no plan is signed exactly as before — this is additive, not a
+  behavior change — and a plan address that matches no entry in the batch
+  is `ErrDelegatePlanUnmatched`, never a silent no-op. (#104)
+- `RequireAllSigned` makes `AuthorizeAll` fail with the new
+  `ErrUnsignedCredentialNode` if any credential node in the resulting
+  batch — including a delegates entry's top-level node — is left
+  unsigned. It is opt-in and literal: a delegates-only account that
+  deliberately leaves its top-level node `Void` should not pass this
+  option for that entry. No migration is needed; existing callers that
+  never pass these options see no behavior change, since `AuthorizeAll`'s
+  signature only gained a trailing variadic parameter. (#103)
+
+**Nonce tracking**
+
+- `NonceTracker`, with `NewInMemoryNonceTracker`, is a pluggable,
+  concurrency-safe helper for avoiding nonce collisions across concurrent
+  signing within one process. It is a best-effort local aid, not a
+  correctness guarantee — the host remains the sole authority on whether a
+  nonce is valid — and is entirely independent of nonce generation:
+  nothing in `AuthorizeInvocation` changed, and using a `NonceTracker` is
+  opt-in. (#91)
+
+**Protocol version matrix**
+
+- `ArmProtocolVersion` records the Stellar protocol version each
+  credential arm's CAP was introduced in (CAP-46-11 → Protocol 20 for the
+  source-account and legacy arms; CAP-71-01 / CAP-71-02 → Protocol 27 for
+  V2 and the delegates arm), sourced from each CAP's own preamble. The
+  README's new "Protocol version support" table documents the same
+  numbers, and `TestArmProtocolVersionMatchesTheReadme` fails the normal
+  test suite if the two drift. (#92)
+
 ### Added (docs correctness)
 
 - The README's three Go examples (Quickstart, Delegates, the inline
