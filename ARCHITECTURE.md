@@ -109,6 +109,18 @@ makes a wallet say so in code before it can obtain a submittable envelope.
 | `cmd/soroauth` | CLI: `payload`, `sign`, `delegates`, `inspect`, `doctor`, `cross-compile`. `inspect`, `payload` and `sign` take a whole envelope as well as a single entry, and work out which they were handed |
 | `adapters/walletsdk` | A **separate Go module**: the wallet-SDK-shaped adapter. The root module does not import it, so no wallet SDK is a dependency of soroauth |
 
+## Untrusted input
+
+`Inspect` and the CLI are pointed at entries from elsewhere by design, so the
+base64 decoder and every recursive walk over an entry are bounded on purpose.
+`DecodeAuthorizationEntry` applies 64 levels of nesting and 1 MiB of decoded
+input, and returns `ErrDecodeLimit` when either bites. `Inspect`,
+`ValidateDelegateOrder`, the credential-node walk in
+`AuthorizeEntry`, and `WithDelegates` refuse a tree nested past 64 levels for
+the same reason. The values and their rationale live on the constants in
+`decode.go`. This does not change any emitted bytes: the limits only bound what
+the library is willing to read.
+
 ## The delegate model
 
 Under CAP-71-01 an account may authenticate through delegated signers instead of
