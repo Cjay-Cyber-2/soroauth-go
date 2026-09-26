@@ -27,6 +27,16 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   `golden_test.go` refuses a vector whose version it does not know rather than
   reading fields that may have moved. (#50)
 
+- `e2e/contracts/policy-account`, a new contract fixture with unit tests: a
+  custom account whose `__check_auth` reads the *amount* out of the invocation
+  arguments it is being asked to authorize and refuses a transfer that would
+  take the account past a per-period limit, with its own
+  `SpendingLimitExceeded` error. It is the first fixture that decides on what
+  is being authorized rather than only on who signed. Test fixture code, not a
+  product: no policies beyond the one limit, no upgradability, not for mainnet.
+  Two e2e scenarios drive it against a live host, one within the limit and one
+  over it. (#72)
+
 ### Added
 
 **Offline verification**
