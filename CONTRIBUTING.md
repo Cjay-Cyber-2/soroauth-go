@@ -101,7 +101,9 @@ not tagged yet; once it is, the adapter is the module that needs its own
 
 The end-to-end test suite automatically emits a machine-readable `parity-report.json` artifact listing every vector and implementation verdict when run with the `e2e` build tag:
 
-go test -tags e2e -v ./e2e/...
+```sh
+go test -tags e2e -v -run TestParityReportRegression ./e2e
+```
 
 A local failure can be reproduced by inspecting the generated `parity-report.json` file in the root directory. Contributors can examine this JSON file to verify vector coverage and implementation verdicts or to debug any parity regressions locally.
 
