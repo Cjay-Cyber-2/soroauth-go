@@ -6,9 +6,11 @@ follows exists to keep the evidence honest rather than to police style.
 
 ## Setup
 
+```sh
 git clone https://github.com/soroauth/soroauth-go
 cd soroauth-go
 go test ./...
+```
 
 That is the whole setup for the library and CLI. Go 1.25.0 or later.
 
