@@ -61,7 +61,9 @@ without `stellar-cli` rather than failing later with an obscure test error.
 
 ## Before you open a pull request
 
+```sh
 make            # fmt, vet and test
+```
 
 The underlying commands are:
 
@@ -82,7 +84,7 @@ root does not reach it: the go tool stops at the first directory holding a
 `go.mod`. It has its own CI job, and its own loop:
 
 cd adapters/walletsdk
-gofmt -l .
+go fmt -l .
 go vet ./...
 go test -race ./...
 
@@ -358,19 +360,21 @@ between releases.
   ```sh
   export SOROAUTH_RPC_URL=https://soroban-testnet.stellar.org
   go test -tags e2e -v ./e2e/...
+  ```
   
 ## Coverage reporting (CI)
 
 The CI pipeline (`coverage` job in `.github/workflows/ci.yml`) measures test
-coverage on every push and PR, enforces a floor of **80%**, and publishes the
+coverage on every push and PR, enforces a floor of **60%**, and publishes the
 report via Codecov.
 
 - Run locally to check your coverage before pushing:
   ```sh
   go test -coverprofile=coverage.out -covermode=atomic ./...
   go tool cover -func=coverage.out | awk '/total/{print $3}'
-  
-- The floor is set to 80%. If it drops, the `coverage` job fails.
+  ```
+
+- The floor is set to 60%. If it drops, the `coverage` job fails.
 - The report is visible in the CI logs and on Codecov without digging through
   artifacts.
 
