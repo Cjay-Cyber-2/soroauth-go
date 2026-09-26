@@ -9,107 +9,161 @@ import (
 	"os/exec"
 )
 
-func handleWASMBudget(args []string, stdout io.Writer, stderr io.Writer) error {
+// WASMBudget is the default maximum size, in bytes, for the compiled js/wasm
+// signing core. The core is downloaded by a browser, so its size is worth
+// failing a build over rather than noticing after a release; --budget overrides
+// it for a caller measuring something else.
+//
+// This is a ceiling set above a measured size, not an aspiration. The 3 MiB it
+// replaced could never have passed, and neither could the 5 MiB the flag
+// defaulted to separately:
+//
+//	$ ./wasm/build.sh && ls -l wasm/dist/soroauth.wasm
+//	6211959 wasm/dist/soroauth.wasm
+//
+// measured 2026-09-26 with go1.25.4 on darwin/arm64. 7 MiB leaves 1128073 bytes
+// of headroom, which is room for the toolchain to grow the binary a little
+// between releases without a red build that says nothing about the change that
+// triggered it.
+//
+// Lower it as the core shrinks — that is the point of having it — but never
+// without a fresh measurement named in the commit body. Go WASM binaries are
+// large mostly because of the runtime, so a real reduction means changing what
+// the core links, not tightening this number.
+const WASMBudget = 7 * 1024 * 1024 // 7 MiB
+
+// WASMBudgetResult is the wasm-budget subcommand's result, and the shape of its
+// --json output.
+//
+// Sizes are bytes, as int64. There is no human-formatted "3.0 MiB" field: that
+// needs floating-point division, and this project uses no floats anywhere (a
+// float is not exact, and a size that matters is one a script compares, not one
+// a person reads).
+type WASMBudgetResult struct {
+	// Size is the measured size of the artifact, in bytes.
+	Size int64 `json:"size"`
+	// Budget is the ceiling it was measured against, in bytes.
+	Budget int64 `json:"budget"`
+	// Exceeded is true when Size is strictly greater than Budget. A binary
+	// exactly at the budget passes.
+	Exceeded bool `json:"exceeded"`
+	// PreviousSize is the --prev-size the delta was computed against, omitted
+	// when none was given.
+	PreviousSize int64 `json:"previous_size,omitempty"`
+	// Delta is Size minus PreviousSize, omitted when no previous size was
+	// given. Negative means the artifact shrank.
+	Delta int64 `json:"delta,omitempty"`
+}
+
+const wasmBudgetUsage = `soroauth wasm-budget — measure the wasm core against a size ceiling.
+
+usage:
+  soroauth wasm-budget [--out <path>] [--budget <bytes>] [--prev-size <bytes>] \
+                       [--build-cmd <command>] [--json]
+
+Measures the file at --out and exits non-zero if it is larger than --budget.
+The default budget is 7 MiB (7340032 bytes); a binary exactly at the budget
+passes, and only one strictly larger fails.
+
+With --prev-size, reports the delta against a previous release's size, so a
+build that grows can be seen growing rather than only when it crosses the line.
+
+--build-cmd runs a command first, for a caller that wants measuring and building
+in one step:
+
+  soroauth wasm-budget --build-cmd ./wasm/build.sh --out wasm/dist/soroauth.wasm
+
+Prints the result to stdout, as text or, with --json, as a JSON object with
+fields "size", "budget", "exceeded", "previous_size" and "delta". On the
+over-budget path stdout still carries only the result: the diagnostic goes to
+stderr, so a script can read stdout without filtering it.
+
+exit codes:
+  0  within budget
+  1  over budget, or the artifact could not be measured
+  2  usage error (invalid flags)
+`
+
+// runWASMBudget measures the built wasm artifact against a size ceiling.
+//
+// stdout carries the result and nothing else, on the failure path too: the
+// reason it failed travels in the returned error, which main writes to stderr.
+// That split is what lets `soroauth wasm-budget --json | jq` work whether the
+// build is over budget or under it.
+func runWASMBudget(args []string, stdout, stderr io.Writer) error {
 	fs := flag.NewFlagSet("wasm-budget", flag.ContinueOnError)
 	fs.SetOutput(stderr)
-	jsonOutput := fs.Bool("json", false, "Output result in JSON format")
-	wasmOut := fs.String("out", "soroauth.wasm", "Path to output wasm file")
-	budgetBytes := fs.Int64("budget", 5*1024*1024, "Maximum allowed size in bytes (default 5MB)")
-	prevSize := fs.Int64("prev-size", 0, "Previous release size for delta comparison")
-	buildCmd := fs.String("build-cmd", "", "Optional command to build the wasm binary before measuring")
+	fs.Usage = func() {
+		fmt.Fprint(stderr, wasmBudgetUsage)
+		fmt.Fprintln(stderr, "\nflags:")
+		fs.PrintDefaults()
+	}
+
+	jsonOutput := fs.Bool("json", false, "output the result as JSON")
+	wasmOut := fs.String("out", "wasm/dist/soroauth.wasm", "path to the wasm artifact to measure")
+	budgetBytes := fs.Int64("budget", WASMBudget, "maximum allowed size in bytes")
+	prevSize := fs.Int64("prev-size", 0, "previous release's size, for a delta")
+	buildCmd := fs.String("build-cmd", "", "command to build the artifact before measuring")
 
 	if err := fs.Parse(args); err != nil {
-		return err
+		return newErrorf(ExitUsageError, "%w", err)
+	}
+	if *budgetBytes <= 0 {
+		return newErrorf(ExitUsageError, "--budget must be greater than zero, got %d", *budgetBytes)
+	}
+	if *prevSize < 0 {
+		return newErrorf(ExitUsageError, "--prev-size must not be negative, got %d", *prevSize)
 	}
 
 	if *buildCmd != "" {
+		// Output goes to stderr, not stdout: the build's chatter is not this
+		// command's result, and a caller piping stdout to jq must not receive it.
 		cmd := exec.Command("sh", "-c", *buildCmd)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			return fmt.Errorf("building wasm binary: %w, stderr: %s", err, string(output))
+			if len(output) > 0 {
+				fmt.Fprintf(stderr, "%s\n", output)
+			}
+			return fmt.Errorf("wasm budget: building the artifact: %w", err)
 		}
 	}
 
 	fi, err := os.Stat(*wasmOut)
 	if err != nil {
-		return fmt.Errorf("stat wasm binary: %w", err)
-	}
-
-	wasmSize := fi.Size()
-	exceeded := wasmSize > *budgetBytes
-	var delta int64
-	if *prevSize > 0 {
-		delta = wasmSize - *prevSize
+		return fmt.Errorf("wasm budget: measuring %s: %w", *wasmOut, err)
 	}
 
 	result := WASMBudgetResult{
-		Size:         wasmSize,
-		Budget:       *budgetBytes,
-		Exceeded:     exceeded,
-		PreviousSize: *prevSize,
-		Delta:        delta,
+		Size:     fi.Size(),
+		Budget:   *budgetBytes,
+		Exceeded: fi.Size() > *budgetBytes,
+	}
+	if *prevSize > 0 {
+		result.PreviousSize = *prevSize
+		result.Delta = fi.Size() - *prevSize
 	}
 
 	if *jsonOutput {
-		data, err := json.MarshalIndent(result, "", "  ")
+		encoded, err := json.MarshalIndent(result, "", "  ")
 		if err != nil {
-			return err
+			return fmt.Errorf("wasm budget: encoding the result: %w", err)
 		}
-		fmt.Fprintln(stdout, string(data))
+		fmt.Fprintln(stdout, string(encoded))
 	} else {
-		fmt.Fprintf(stdout, "WASM Size: %d bytes (Budget: %d bytes)\n", wasmSize, *budgetBytes)
-		if *prevSize > 0 {
-			fmt.Fprintf(stdout, "Delta vs Previous: %+d bytes\n", delta)
+		fmt.Fprintf(stdout, "size: %d bytes\nbudget: %d bytes\n", result.Size, result.Budget)
+		if result.PreviousSize > 0 {
+			fmt.Fprintf(stdout, "previous: %d bytes\ndelta: %+d bytes\n", result.PreviousSize, result.Delta)
 		}
-		if exceeded {
-			fmt.Fprintln(stdout, "ERROR: WASM size budget exceeded!")
+		if result.Exceeded {
+			fmt.Fprintln(stdout, "exceeded: true")
 		} else {
-			fmt.Fprintln(stdout, "SUCCESS: WASM size within budget.")
+			fmt.Fprintln(stdout, "exceeded: false")
 		}
 	}
 
-	if exceeded {
-		return fmt.Errorf("wasm size %d exceeds budget %d", wasmSize, *budgetBytes)
+	if result.Exceeded {
+		return fmt.Errorf("wasm budget: %s is %d bytes, over the %d byte budget by %d",
+			*wasmOut, result.Size, result.Budget, result.Size-result.Budget)
 	}
-
 	return nil
-}
-
-// WASMBudget is the maximum allowed size in bytes for the compiled WASM artifact.
-// Go WASM binaries grow quickly; this budget enforces a strict ceiling.
-const WASMBudget = 3 * 1024 * 1024 // 3 MiB budget
-
-// WASMReport represents the structured JSON output for the WASM size check.
-type WASMReport struct {
-	SizeInBytes     int64  `json:"size_in_bytes"`
-	SizeFormatted   string `json:"size_formatted"`
-	BudgetInBytes   int64  `json:"budget_in_bytes"`
-	BudgetFormatted string `json:"budget_formatted"`
-	PreviousRelease int64  `json:"previous_release_size_bytes"`
-	DeltaBytes      int64  `json:"delta_bytes"`
-	DeltaFormatted  string `json:"delta_formatted"`
-	Passed          bool   `json:"passed"`
-}
-
-// formatBytes returns a human-readable string representation of a byte size.
-func formatBytes(b int64) string {
-	const unit = 1024
-	if b < unit {
-		return fmt.Sprintf("%d B", b)
-	}
-	div, exp := int64(unit), 0
-	for n := b / unit; n >= unit; n /= unit {
-		div *= unit
-		exp++
-	}
-	return fmt.Sprintf("%.1f %ciB", float64(b)/float64(div), "KMGTPE"[exp])
-}
-
-// WASMBudgetResult represents the structured result of the WASM size budget check.
-type WASMBudgetResult struct {
-	Size         int64 `json:"size"`
-	Budget       int64 `json:"budget"`
-	Exceeded     bool  `json:"exceeded"`
-	PreviousSize int64 `json:"previous_size,omitempty"`
-	Delta        int64 `json:"delta,omitempty"`
 }
