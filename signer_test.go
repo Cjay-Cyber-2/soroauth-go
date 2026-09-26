@@ -9,6 +9,7 @@ import (
 	"net"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stellar/go-stellar-sdk/keypair"
 	"github.com/stellar/go-stellar-sdk/xdr"
@@ -122,7 +123,7 @@ func TestEd25519SignerProducesTheAccountSignatureShape(t *testing.T) {
 
 	// The value goes into a credential node, so it must be legal XDR.
 	if _, err := value.MarshalBinary(); err != nil {
-		t.Fatalf("signature does not marshal: %v", err)
+		t.Fatalf("marshaling signature ScVal failed: %v", err)
 	}
 
 	parts := decodeAccountSignature(t, value)
@@ -472,6 +473,104 @@ func TestSignerFuncPropagatesErrors(t *testing.T) {
 
 	if _, err := signer.Sign(context.Background(), xdr.HashIdPreimage{}, testPayload("x")); !errors.Is(err, sentinel) {
 		t.Errorf("error %v does not wrap the callback's error", err)
+	}
+}
+
+func TestSignerRetryPolicy(t *testing.T) {
+	// Test successful recovery after transient transport errors
+	address := testContractAddress(t, "soroauth-retry-contract")
+	var attempts int
+	transportErr := errors.New("connection reset by peer")
+
+	signer := WithRetry(SignerFunc(address, func(_ context.Context, _ xdr.HashIdPreimage, _ [32]byte) (xdr.ScVal, error) {
+		attempts++
+		if attempts < 3 {
+			return xdr.ScVal{}, transportErr
+		}
+		return scBytes([]byte("success")), nil
+	}), RetryConfig{
+		Attempts:       3,
+		InitialBackoff: 1 * time.Millisecond,
+		MaxBackoff:     10 * time.Millisecond,
+	})
+
+	val, err := signer.Sign(context.Background(), xdr.HashIdPreimage{}, testPayload("x"))
+	if err != nil {
+		t.Fatalf("Sign returned unexpected error: %v", err)
+	}
+	if attempts != 3 {
+		t.Errorf("attempts = %d, want 3", attempts)
+	}
+	if val.Type == xdr.ScValTypeScvVoid {
+		t.Error("returned ScVal is empty")
+	}
+
+	// Test that signature rejections are NEVER retried
+	var rejectionAttempts int
+	rejectionErr := fmt.Errorf("%w: bad sig", ErrSignatureMismatch)
+	rejectionSigner := WithRetry(SignerFunc(address, func(_ context.Context, _ xdr.HashIdPreimage, _ [32]byte) (xdr.ScVal, error) {
+		rejectionAttempts++
+		return xdr.ScVal{}, rejectionErr
+	}), RetryConfig{
+		Attempts:       5,
+		InitialBackoff: 1 * time.Millisecond,
+		MaxBackoff:     10 * time.Millisecond,
+	})
+
+	_, err = rejectionSigner.Sign(context.Background(), xdr.HashIdPreimage{}, testPayload("x"))
+	if !errors.Is(err, ErrSignatureMismatch) {
+		t.Errorf("error %v does not wrap ErrSignatureMismatch", err)
+	}
+	if rejectionAttempts != 1 {
+		t.Errorf("rejectionAttempts = %d, want 1; signature rejection must not be retried", rejectionAttempts)
+	}
+
+	// Test context cancellation wins over pending retry
+	cancelAttempts := 0
+	ctx, cancel := context.WithCancel(context.Background())
+	cancelSigner := WithRetry(SignerFunc(address, func(_ context.Context, _ xdr.HashIdPreimage, _ [32]byte) (xdr.ScVal, error) {
+		cancelAttempts++
+		cancel()
+		return xdr.ScVal{}, transportErr
+	}), RetryConfig{
+		Attempts:       5,
+		InitialBackoff: 50 * time.Millisecond,
+		MaxBackoff:     200 * time.Millisecond,
+	})
+
+	_, err = cancelSigner.Sign(ctx, xdr.HashIdPreimage{}, testPayload("x"))
+	if err == nil {
+		t.Fatal("Sign succeeded despite context cancellation")
+	}
+	if cancelAttempts != 1 {
+		t.Errorf("cancelAttempts = %d, want 1; should stop after context cancellation", cancelAttempts)
+	}
+}
+
+func TestSignerRetryIntegration(t *testing.T) {
+	var attempts int
+	retrySigner := WithRetry(SignerFunc("GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF", func(ctx context.Context, preimage xdr.HashIdPreimage, payload [32]byte) (xdr.ScVal, error) {
+		attempts++
+		if attempts < 3 {
+			return xdr.ScVal{}, errors.New("transient")
+		}
+		return scBytes([]byte("ok")),
+			nil
+	}), RetryConfig{
+		Attempts:       3,
+		InitialBackoff: time.Millisecond,
+		MaxBackoff:     10 * time.Millisecond,
+	})
+
+	val, err := retrySigner.Sign(context.Background(), xdr.HashIdPreimage{}, testPayload("x"))
+	if err != nil {
+		t.Fatalf("Sign unexpected error: %v", err)
+	}
+	if attempts != 3 {
+		t.Errorf("attempts = %d, want 3", attempts)
+	}
+	if val.Type == xdr.ScValTypeScvVoid {
+		t.Error("returned ScVal is empty")
 	}
 }
 
