@@ -141,7 +141,7 @@ func (h *harness) deployAndFundFixture(t *testing.T, deployer *keypair.Full, was
 	}
 
 	acc := h.account(t, deployer.Address())
-	op := txnbuild.CreateCustomContract{
+	op := txnbuild.CreateContract{
 		Wasm:            wasm,
 		SourceAccount:   deployer.Address(),
 		ConstructorArgs: constructorArgs,
@@ -178,30 +178,15 @@ func (h *harness) deployAndFundFixture(t *testing.T, deployer *keypair.Full, was
 	// In Soroban, the created contract ID is returned in the simulation/result metadata or we can compute it / read it.
 	// Actually, stellar-sdk txnbuild CreateContract populates ContractID when signed/submitted or we can inspect result meta.
 	// Let's use getTransaction to retrieve the result meta and extract the contract ID.
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	txInfo, err := h.client.GetTransaction(ctx, rpc.GetTransactionRequest{TransactionHash: sub.Hash})
+	contractID, err := op.GetContractID(h.passphrase)
 	if err != nil {
-		t.Fatalf("getting transaction %s: %v", sub.Hash, err)
-	}
-	var meta xdr.TransactionMeta
-	if err := xdr.SafeUnmarshalBase64(txInfo.ResultMetaXDR, &meta); err != nil {
-		t.Fatalf("decoding result meta: %v", err)
-	}
-
-	var contractID string
-
-	// Alternatively, use stellar-sdk or compute contract ID from deployer + salt, or fetch from transaction meta LedgerEntryChanges.
-	// Let's use standard stellar-sdk contract ID derivation or extract from LedgerEntryChanges created.
-	contractID, err = extractContractIDFromMeta(meta)
-	if err != nil {
-		t.Fatalf("extracting contract id: %v", err)
+		t.Fatalf(
+			"deriving contract id for deployer %s: %v",
+			deployer.Address(),
+			err,
+		)
 	}
 	return contractID
-}
-
-func extractContractIDFromMeta(meta xdr.TransactionMeta) (string, error) {
-	return "", fmt.Errorf("contract id extraction not needed for simulated mock arm")
 }
 
 // newAccount generates a keypair and funds it with friendbot.
