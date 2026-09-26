@@ -464,6 +464,10 @@ func (s *retriedSigner) Sign(ctx context.Context, preimage xdr.HashIdPreimage, p
 			return xdr.ScVal{}, fmt.Errorf("soroauth: retry sign cancelled: %w", err)
 		}
 
+		if err := ctx.Err(); err != nil {
+			return xdr.ScVal{}, fmt.Errorf("soroauth: retry sign cancelled: %w", err)
+		}
+
 		rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 		var jitter time.Duration
 		if backoffDur/4 > 0 {
@@ -485,10 +489,6 @@ func (s *retriedSigner) Sign(ctx context.Context, preimage xdr.HashIdPreimage, p
 			}
 			return xdr.ScVal{}, fmt.Errorf("soroauth: retry sign cancelled: %w", ctx.Err())
 		case <-timer.C:
-		}
-
-		if err := ctx.Err(); err != nil {
-			return xdr.ScVal{}, fmt.Errorf("soroauth: retry sign cancelled: %w", err)
 		}
 
 		if err := ctx.Err(); err != nil {
