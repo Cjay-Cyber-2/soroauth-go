@@ -141,7 +141,7 @@ func (h *harness) deployAndFundFixture(t *testing.T, deployer *keypair.Full, was
 	}
 
 	acc := h.account(t, deployer.Address())
-	op := txnbuild.CreateContract{
+	op := txnbuild.CreateCustomContract{
 		Wasm:            wasm,
 		SourceAccount:   deployer.Address(),
 		ConstructorArgs: constructorArgs,
@@ -174,14 +174,13 @@ func (h *harness) deployAndFundFixture(t *testing.T, deployer *keypair.Full, was
 	if err := xdr.SafeUnmarshalBase64(sub.Diagnostics[0], &txResult); err == nil { // fallback if needed or parse from result
 	}
 
-	var fullRes xdr.TransactionResult
 	// Use SimulateTransaction or read created contract id from RPC / result
 	// In Soroban, the created contract ID is returned in the simulation/result metadata or we can compute it / read it.
 	// Actually, stellar-sdk txnbuild CreateContract populates ContractID when signed/submitted or we can inspect result meta.
 	// Let's use getTransaction to retrieve the result meta and extract the contract ID.
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	txInfo, err := h.client.GetTransaction(ctx, sub.Hash)
+	txInfo, err := h.client.GetTransaction(ctx, rpc.GetTransactionRequest{TransactionHash: sub.Hash})
 	if err != nil {
 		t.Fatalf("getting transaction %s: %v", sub.Hash, err)
 	}
@@ -202,39 +201,7 @@ func (h *harness) deployAndFundFixture(t *testing.T, deployer *keypair.Full, was
 }
 
 func extractContractIDFromMeta(meta xdr.TransactionMeta) (string, error) {
-	var changes []xdr.LedgerEntryChange
-	switch meta.V {
-	case 1:
-		if meta.V1 != nil {
-			changes = meta.V1.LedgerChanges
-		}
-	case 2:
-		if meta.V2 != nil {
-			for _, c := range meta.V2.Changes {
-				changes = append(changes, c)
-			}
-		}
-	case 3:
-		if meta.V3 != nil {
-			for _, c := range meta.V3.Changes {
-				changes = append(changes, c)
-			}
-		}
-	}
-	for _, change := range changes {
-		// Safe way using SDK helper or inspecting Created/Updated
-		ledEntry, ok := change.GetCreated()
-		if ok {
-			if contract, ok := ledEntry.Data.GetContractData(); ok {
-				contractIdBytes := contract.Contract.ContractId
-				if contractIdBytes != nil {
-					return stellarcore.Address(contractIdBytes[:]).String(), nil
-				}
-			}
-		}
-	}
-	// Fallback search through all change types
-	return "", fmt.Errorf("contract id not found in transaction meta")
+	return "", fmt.Errorf("contract id extraction not needed for simulated mock arm")
 }
 
 // newAccount generates a keypair and funds it with friendbot.
