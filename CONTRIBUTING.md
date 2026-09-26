@@ -67,10 +67,12 @@ make            # fmt, vet and test
 
 The underlying commands are:
 
+```sh
 gofmt -l .        # must print nothing
 go vet ./...
 golangci-lint run ./...
 go test -race ./...
+```
 
 CI runs all of these except `golangci-lint`, plus the golden-vector drift check
 and the contract build; the signing-path budget check runs on push to main (see
@@ -113,10 +115,12 @@ that list needs a reason in the config, not a `//nolint` at the call site.
 root does not reach it: the go tool stops at the first directory holding a
 `go.mod`. It has its own CI job, and its own loop:
 
+```sh
 cd adapters/walletsdk
-go fmt -l .
+gofmt -l .
 go vet ./...
 go test -race ./...
+```
 
 It is a separate module on purpose: it is the only place a wallet SDK is
 named, and keeping it out of the root module is what stops `go get` of
@@ -130,16 +134,6 @@ soroauth in this checkout rather than a published version. The root module is
 not tagged yet; once it is, the adapter is the module that needs its own
 `adapters/walletsdk/vX.Y.Z` tags before anyone outside this repository can
 `go get` it.
-
-## Parity Reports
-
-The end-to-end test suite automatically emits a machine-readable `parity-report.json` artifact listing every vector and implementation verdict when run with the `e2e` build tag:
-
-```sh
-go test -tags e2e -v -run TestParityReportRegression ./e2e
-```
-
-A local failure can be reproduced by inspecting the generated `parity-report.json` file in the root directory. Contributors can examine this JSON file to verify vector coverage and implementation verdicts or to debug any parity regressions locally.
 
 ## Parity harnesses
 
@@ -193,16 +187,20 @@ delegates, including a depth-8 delegate chain), `AuthorizeAll` over a
 `internal/xdrcopy` that every entry-returning function performs, in its two
 on-path shapes (an authorization entry and a `HashIdPreimage`).
 
+```sh
 # Full suite with allocation stats
 go test -run '^$' -bench . -benchmem -count=1 .
 
 # One arm
 go test -run '^$' -bench 'BenchmarkAuthorizeEntry/delegates' -benchmem .
+```
 
 CI runs the same command and gates on **allocs/op and B/op** only, via:
 
+```sh
 go test -run '^$' -bench . -benchmem -count=1 . | tee /tmp/bench.out
 go run ./scripts/checkbench /tmp/bench.out testdata/bench/budgets.json
+```
 
 `ns/op` is reported for humans in PRs (with the machine it came from) but never
 fails the build: wall-clock on a shared runner is noise. Allocation counts are
@@ -229,15 +227,19 @@ so a renamed benchmark cannot silently drop out of the gate.
 A CI failure from the `bench` job is a `FAIL` line naming the benchmark and
 the budget it exceeded:
 
+```
 FAIL BenchmarkXDRCopy/entry   allocs/op 26 > budget 23; B/op 1632 > budget 1250
+```
 
 The two commands above, run from the repository root, reproduce it locally —
 `checkbench` exits 1 exactly as CI does. Once you can see *which* benchmark
 regressed, find out *where* the allocations come from:
 
+```sh
 go test -run '^$' -bench BenchmarkXDRCopy -benchmem -count=1 -memprofile /tmp/mem.out .
 go tool pprof -alloc_objects -top /tmp/mem.out   # rank by number of allocations
 go tool pprof -alloc_space  -top /tmp/mem.out    # rank by bytes
+```
 
 The signing-path entries (`AuthorizeEntry`, `AuthorizeAll`) also include
 ed25519 signing and SHA-256; `BenchmarkXDRCopy` isolates the deep copy, so a
@@ -275,8 +277,10 @@ This means two different things can fail, and the test names which:
 
 To reproduce either failure locally:
 
+```sh
 go build ./...                        # catches a snippet that no longer compiles
 go test -run TestReadmeSnippets -v .  # catches README/source drift, naming the snippet
+```
 
 To change an example, edit the marked region in
 `internal/readmesnippets/*.go` and copy it verbatim (as, or converted from,
@@ -297,7 +301,9 @@ pins `ArmProtocolVersion` itself to the values read directly from the CAPs.
 
 To reproduce a failure locally:
 
+```sh
 go test -run TestArmProtocolVersion -v .
+```
 
 Changing a protocol version claim means updating both `protocolmatrix.go`
 and the README table together, in the same commit, and citing the CAP text
@@ -316,7 +322,9 @@ and opens a PR updating both the SHA and its version comment together when a
 new release comes out, so the two can never drift apart. To pin a new action
 by hand, resolve the tag to a commit first:
 
+```sh
 git ls-remote --tags https://github.com/<owner>/<repo> | grep 'refs/tags/v7$'
+```
 
 Use the first column's SHA (for an *annotated* tag, `git ls-remote` also
 prints a `refs/tags/v7^{}` line — use that dereferenced commit SHA, not the
@@ -336,9 +344,11 @@ not to do it is that it destroys the evidence, not that you will be caught.
 
 To change them, change the generator:
 
+```sh
 cd testdata/gen
 npm ci
 node gen.mjs
+```
 
 Then commit the regenerated files together with the generator change.
 
@@ -362,14 +372,18 @@ The e2e test suite provides a shared fixture deployment harness (`deployAndFundF
 
 To deploy and fund any contract fixture in your own scenarios or local debugging:
 
+```go
 deployer := h.newAccount(t, "deployer")
 wasmBytes := wasmPath("modular_account")
 contractID := h.deployAndFundFixture(t, deployer, wasmBytes, constructorArgs...)
+```
 
 ## Running the e2e tests
 
+```sh
 cd e2e/contracts && stellar contract build
 cd ../.. && go test -tags e2e -v ./e2e/...
+```
 
 They run against testnet by default; `SOROAUTH_RPC_URL` points them elsewhere.
 Accounts are generated at runtime and funded by friendbot. A full run takes
@@ -398,20 +412,45 @@ between releases.
   export SOROAUTH_RPC_URL=https://soroban-testnet.stellar.org
   go test -tags e2e -v ./e2e/...
   ```
-  
+
+## Parity reports
+
+The e2e suite writes a machine-readable `parity-report.json` alongside
+`RESULTS.md`, listing every scenario with its vector id, implementation,
+verdict and observed credential arm, so a parity regression can be read by a
+tool rather than by eye.
+
+`TestParityReportRegression` checks that report's shape: a non-zero scenario
+count, and a vector id and verdict on every entry. It needs no network — when
+no live report is present it reads the committed fixture at
+`e2e/testdata/parity_regression.json` — so it runs in CI as a step of the `vet
+and test` job, and a regression fails the build rather than only a local run:
+
+```sh
+go test -tags e2e -run TestParityReportRegression ./e2e
+```
+
+To debug a failure, inspect the generated `parity-report.json` in the
+repository root after a full e2e run; it carries the per-scenario verdicts the
+test is asserting over.
+
 ## Coverage reporting (CI)
 
-The CI pipeline (`coverage` job in `.github/workflows/ci.yml`) measures test
-coverage on every push and PR, enforces a floor of **60%**, and publishes the
-report via Codecov.
+The `coverage` job in `.github/workflows/ci-go.yml` measures test coverage,
+enforces a floor of **60%**, and publishes the report via Codecov. It runs on
+push to `main` and on demand, not on pull requests: pull requests are capped at
+the three checks the branch ruleset requires.
 
 - Run locally to check your coverage before pushing:
   ```sh
   go test -coverprofile=coverage.out -covermode=atomic ./...
   go tool cover -func=coverage.out | awk '/total/{print $3}'
   ```
-
-- The floor is set to 60%. If it drops, the `coverage` job fails.
+- The floor is 60%, and it is a floor set below a measured total rather than an
+  aspiration. The 80% it replaced never passed: every push to `main` while it
+  was in place reported around 62% and failed. Raise it as tests are added;
+  never lower it without a fresh measurement named in the commit body. The
+  number lives in the job itself (`floor=60`), which is the authority.
 - The report is visible in the CI logs and on Codecov without digging through
   artifacts.
 
@@ -428,6 +467,7 @@ These tests generate thousands of random G... and C... addresses and verify:
 
 ### Running property tests locally
 
+```sh
 # Run the full property test suite (1000 iterations per property)
 go test -run TestParseAddressFormatAddressProperty -v ./...
 
@@ -436,18 +476,21 @@ go test -run TestParseAddressFormatAddressDeterministic -v ./...
 
 # Run the complementary XDR-level tests
 go test -run 'TestParseAddressWithRandomXDR|TestFormatAddressRejectsInvalidXDR' -v ./...
+```
 
 ### Reproducing a property test failure
 
 If a property test fails, the output will show the seed and the generated value
 that caused the failure. To reproduce:
 
+```sh
 # 1. Note the seed from the failure output (e.g., "failed with initial seed: 12345")
 # 2. Run with that seed:
 go test -run TestParseAddressFormatAddressProperty -v -count=1 ./... 2>&1 | head -50
 
 # Or run the deterministic test which uses a fixed seed:
 go test -run TestParseAddressFormatAddressDeterministic -v ./...
+```
 
 The deterministic test (`TestParseAddressFormatAddressDeterministic`) runs a
 fixed set of 100 iterations per property with seed `0xDEADBEEF` and is the one
@@ -501,7 +544,9 @@ of the normal suite, so `go test ./...` fails the same way CI does.
 
 Reproduce a failure locally:
 
+```
 go test ./internal/doccheck/... -run TestRoot_RepoIsClean -v
+```
 
 Each line names the file, the line, and the identifier. A const or var block
 can be documented either per entry or with one comment above the block (both
@@ -543,10 +588,12 @@ godoc.
 
 Conventional commits, lowercase and imperative:
 
+```
 feat(authorize): sign delegate nodes by address
 test(golden): cover delegate vectors
 docs(readme): write readme
 ci: add golden drift job
+```
 
 One logical unit per commit — a function and its tests, one CLI subcommand, one
 document. Commit bodies carry the evidence: the command you ran and its real
