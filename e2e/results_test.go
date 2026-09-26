@@ -185,7 +185,7 @@ func writeParityReport() {
 		fmt.Fprintf(os.Stderr, "writing parity-report.json: %v\n", err)
 		return
 	}
-	fmt.Fprintln(os.Stderr, "wrote e2e/parity-report.json")
+	fmt.Fprintln(os.Stderr, "wrote parity-report.json")
 }
 
 var _ = testing.Verbose
