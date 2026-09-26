@@ -74,6 +74,9 @@ jobs:
       - name: test
         run: go test -race ./...
 
+      - name: wasm size budget
+        run: go run ./cmd/soroauth wasm-budget --json
+
   # The wallet SDK adapter is a nested module, so the gofmt, vet and test steps
   # above do not reach it: `./...` stops at any directory holding its own
   # go.mod. It is checked here instead. Without this job the adapter would be
