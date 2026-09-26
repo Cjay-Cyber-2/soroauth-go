@@ -38,6 +38,7 @@ func formatBytes(b int64) string {
 	return fmt.Sprintf("%.1f %ciB", float64(b)/float64(div), "KMGTPE"[exp])
 }
 
+// WASMBudgetResult represents the structured result of the WASM size budget check.
 type WASMBudgetResult struct {
 	Size         int64 `json:"size"`
 	Budget       int64 `json:"budget"`
