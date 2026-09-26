@@ -46,6 +46,14 @@ be reported privately rather than filed publicly:
   one, including on error paths.
 - Divergence from the golden vectors that is not a bug in the vectors.
 
+### Remote Signer Retries and Threat Model
+
+When using remote signers via `WithRetry`, the library provides jittered exponential backoff and attempt capping strictly for transient transport errors. Signature rejections (such as signature mismatches, invalid credentials, or explicit refusals) are never retried to prevent hiding real failures or exhausting HSM/KMS quotas.
+
+**Threat model addressed:** Temporary network partitions, transient RPC/KMS downtime, and connection resets during remote signing.
+
+**Explicitly not addressed:** Protection against compromised remote signers, malicious upstream KMS throttling due to high valid transaction volume, or side-channel leakage across retry attempts.
+
 Lower severity, still worth reporting privately if you are unsure: panics
 reachable from untrusted input, and denial of service through malformed XDR.
 
