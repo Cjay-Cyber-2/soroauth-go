@@ -83,6 +83,7 @@ commands:
   doctor         check the local environment for common first-run problems
   cross-compile  build soroauth for multiple targets
   wasm-budget    measure and enforce WASM artifact size budget
+  tree           print an authorization entry's call tree
 
 run "soroauth <command> -h" for the flags of a command.
 
@@ -134,6 +135,8 @@ func run(args []string, stdout, stderr io.Writer, getenv func(string) string) er
 		return runCrossCompile(args[1:], stdout, stderr)
 	case "wasm-budget":
 		return handleWASMBudget(args[1:], stdout, stderr)
+	case "tree":
+		return runTree(args[1:], stdout, stderr)
 	case "help", "-h", "--help":
 		fmt.Fprint(stdout, usage)
 		return nil
