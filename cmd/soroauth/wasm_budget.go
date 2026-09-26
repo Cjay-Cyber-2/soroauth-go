@@ -70,21 +70,21 @@ func handleWASMBudget(args []string, stdout io.Writer, stderr io.Writer) error {
 	if err != nil {
 		return newErrorf(ExitGeneralError, "stat wasm binary: %v", err)
 	}
-	valtSize := fi.Size()
+	wasmSize := fi.Size()
 
 	// Measured previous release baseline for delta comparison (~2.5 MiB)
 	const previousReleaseSize = 2621440
-	delta := valtSize - previousReleaseSize
+	delta := wasmSize - previousReleaseSize
 
 	report := WASMReport{
-		SizeInBytes:     valtSize,
-		SizeFormatted:   formatBytes(valtSize),
+		SizeInBytes:     wasmSize,
+		SizeFormatted:   formatBytes(wasmSize),
 		BudgetInBytes:   WASMBudget,
 		BudgetFormatted: formatBytes(WASMBudget),
 		PreviousRelease: previousReleaseSize,
 		DeltaBytes:      delta,
 		DeltaFormatted:  formatBytes(delta),
-		Passed:          valtSize <= WASMBudget,
+		Passed:          wasmSize <= WASMBudget,
 	}
 
 	if *jsonFlag {
@@ -97,7 +97,7 @@ func handleWASMBudget(args []string, stdout io.Writer, stderr io.Writer) error {
 		fmt.Fprintf(stdout, "WASM build size: %s (budget: %s)\n", report.SizeFormatted, report.BudgetFormatted)
 		fmt.Fprintf(stdout, "Delta vs previous release: %s (%+d bytes)\n", report.DeltaFormatted, report.DeltaBytes)
 		if !report.Passed {
-			fmt.Fprintf(stderr, "soroauth: WASM artifact size %d bytes exceeds budget of %d bytes\n", valtSize, WASMBudget)
+			fmt.Fprintf(stderr, "soroauth: WASM artifact size %d bytes exceeds budget of %d bytes\n", wasmSize, WASMBudget)
 			return newError(ExitGeneralError, "WASM size budget exceeded")
 		}
 	}
