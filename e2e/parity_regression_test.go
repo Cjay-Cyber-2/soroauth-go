@@ -19,7 +19,7 @@ func TestParityReportRegression(t *testing.T) {
 	raw, err := os.ReadFile(reportPath)
 	if err != nil {
 		// If generated report doesn't exist yet (e.g. running standalone before e2e suite), fall back to checking the regression fixture
-		fixturePath := "testdata/parity_regression.json"
+		fixturePath := filepath.Join("testdata", "parity_regression.json")
 		if _, fErr := os.Stat(fixturePath); os.IsNotExist(fErr) {
 			fixturePath = filepath.Join("e2e", "testdata", "parity_regression.json")
 		}
