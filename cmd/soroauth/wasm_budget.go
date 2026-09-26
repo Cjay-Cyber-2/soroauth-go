@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path/filepath"
 )
 
 // WASMBudget is the maximum allowed size in bytes for the compiled WASM artifact.
@@ -39,71 +38,75 @@ func formatBytes(b int64) string {
 	return fmt.Sprintf("%.1f %ciB", float64(b)/float64(div), "KMGTPE"[exp])
 }
 
+type WASMBudgetResult struct {
+	Size         int64 `json:"size"`
+	Budget       int64 `json:"budget"`
+	Exceeded     bool  `json:"exceeded"`
+	PreviousSize int64 `json:"previous_size,omitempty"`
+	Delta        int64 `json:"delta,omitempty"`
+}
+
 func handleWASMBudget(args []string, stdout io.Writer, stderr io.Writer) error {
 	fs := flag.NewFlagSet("wasm-budget", flag.ContinueOnError)
 	fs.SetOutput(stderr)
-	jsonFlag := fs.Bool("json", false, "Produce structured JSON output")
-	outFlag := fs.String("out", "", "Path to write built WASM binary")
+	jsonOutput := fs.Bool("json", false, "Output result in JSON format")
+	wasmOut := fs.String("out", "soroauth.wasm", "Path to output wasm file")
+	budgetBytes := fs.Int64("budget", 5*1024*1024, "Maximum allowed size in bytes (default 5MB)")
+	prevSize := fs.Int64("prev-size", 0, "Previous release size for delta comparison")
+	buildCmd := fs.String("build-cmd", "", "Optional command to build the wasm binary before measuring")
 
 	if err := fs.Parse(args); err != nil {
-		return newError(ExitUsageError, "wasm-budget flag parse: %v", err)
+		return err
 	}
 
-	tmpDir, err := os.MkdirTemp("", "soroauth-wasm-*")
+	if *buildCmd != "" {
+		cmd := exec.Command("sh", "-c", *buildCmd)
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			return fmt.Errorf("building wasm binary: %w, stderr: %s", err, string(output))
+		}
+	}
+
+	fi, err := os.Stat(*wasmOut)
 	if err != nil {
-		return newErrorf(ExitGeneralError, "creating temp dir: %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
-
-	wasmOut := *outFlag
-	if wasmOut == "" {
-		wasmOut = filepath.Join(tmpDir, "soroauth.wasm")
+		return fmt.Errorf("stat wasm binary: %w", err)
 	}
 
-	cmd := exec.Command("go", "build", "-o", wasmOut, ".")
-	cmd.Env = append(os.Environ(), "GOOS=js", "GOARCH=wasm")
-	if err := cmd.Run(); err != nil {
-		return newErrorf(ExitGeneralError, "building wasm binary: %v", err)
-	}
-
-	fi, err := os.Stat(wasmOut)
-	if err != nil {
-		return newErrorf(ExitGeneralError, "stat wasm binary: %v", err)
-	}
 	wasmSize := fi.Size()
-
-	// Measured previous release baseline for delta comparison (~2.5 MiB)
-	const previousReleaseSize = 2621440
-	delta := wasmSize - previousReleaseSize
-
-	report := WASMReport{
-		SizeInBytes:     wasmSize,
-		SizeFormatted:   formatBytes(wasmSize),
-		BudgetInBytes:   WASMBudget,
-		BudgetFormatted: formatBytes(WASMBudget),
-		PreviousRelease: previousReleaseSize,
-		DeltaBytes:      delta,
-		DeltaFormatted:  formatBytes(delta),
-		Passed:          wasmSize <= WASMBudget,
+	exceeded := wasmSize > *budgetBytes
+	var delta int64
+	if *prevSize > 0 {
+		delta = wasmSize - *prevSize
 	}
 
-	if *jsonFlag {
-		enc := json.NewEncoder(stdout)
-		enc.SetIndent("", "  ")
-		if err := enc.Encode(report); err != nil {
-			return newErrorf(ExitGeneralError, "encoding wasm report json: %v", err)
+	result := WASMBudgetResult{
+		Size:         wasmSize,
+		Budget:       *budgetBytes,
+		Exceeded:     exceeded,
+		PreviousSize: *prevSize,
+		Delta:        delta,
+	}
+
+	if *jsonOutput {
+		data, err := json.MarshalIndent(result, "", "  ")
+		if err != nil {
+			return err
 		}
+		fmt.Fprintln(stdout, string(data))
 	} else {
-		fmt.Fprintf(stdout, "WASM build size: %s (budget: %s)\n", report.SizeFormatted, report.BudgetFormatted)
-		fmt.Fprintf(stdout, "Delta vs previous release: %s (%+d bytes)\n", report.DeltaFormatted, report.DeltaBytes)
-		if !report.Passed {
-			fmt.Fprintf(stderr, "soroauth: WASM artifact size %d bytes exceeds budget of %d bytes\n", wasmSize, WASMBudget)
-			return newError(ExitGeneralError, "WASM size budget exceeded")
+		fmt.Fprintf(stdout, "WASM Size: %d bytes (Budget: %d bytes)\n", wasmSize, *budgetBytes)
+		if *prevSize > 0 {
+			fmt.Fprintf(stdout, "Delta vs Previous: %+d bytes\n", delta)
+		}
+		if exceeded {
+			fmt.Fprintln(stdout, "ERROR: WASM size budget exceeded!")
+		} else {
+			fmt.Fprintln(stdout, "SUCCESS: WASM size within budget.")
 		}
 	}
 
-	if !report.Passed {
-		return newError(ExitGeneralError, "WASM size budget exceeded")
+	if exceeded {
+		return fmt.Errorf("wasm size %d exceeds budget %d", wasmSize, *budgetBytes)
 	}
 
 	return nil
