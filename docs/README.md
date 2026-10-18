@@ -26,7 +26,6 @@ navigation.
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | [labels](labels.md)                             | What each complexity and area label means, who applies it, and who has the final say on complexity.                |
 | [signers](signers.md)                           | Which signer to use for a given threat model, and what evidence backs each one.                                    |
-| [contributing-a-signer](contributing-a-signer.md) | How to write a new signer adapter, meet the conformance suite, avoid typed-nil bugs, and document evidence. |
 | [signing-flow](signing-flow.md)                 | The record, sign, enforce, assemble and submit sequence, with the responsible function at each step.               |
 | [passkeys](passkeys.md)                         | How to sign for a WebAuthn / passkey smart wallet, end to end.                                                     |
 | [migrating](migrating.md)                       | How to replace hand-rolled auth-entry signing with soroauth and verify it produced identical bytes.                |
@@ -91,3 +90,5 @@ These live next to the code they describe.
 | ------------------------------------------------------------ | ------------------------------------------------------------------------ |
 | [pull request template](../.github/pull_request_template.md) | What every pull request must state, including the wire-format checklist. |
 | [CLAUDE.md](../CLAUDE.md)                                    | The original build specification for this project, kept for reference.   |
+
+- [Contributing a New Signer](contributing-a-signer.md)
