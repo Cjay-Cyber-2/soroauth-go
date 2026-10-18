@@ -54,7 +54,62 @@ as "public internet, unexamined". What is now safe and what is still not:
   the network passphrase, an optional expiration assertion — so there is no
   field that accepts a seed, nothing is stored, and no key is ever involved. The
   service verifies; it never signs.
-- **Bounded input.** The body is capped by `MAX_BODY_BYTES`, and the library
+
+## Operations Runbook
+
+### Deployment Shape & Assumptions
+
+- **Stateless Container:** The verification service runs as a stateless container behind an HTTP load balancer or reverse proxy (e.g., Nginx, Envoy, or AWS ALB).
+- **Network Isolation:** Deployed in a private subnet or loopback-only environment when unauthenticated. Public exposure requires setting `AUTH_TOKEN` and termination of TLS at the edge proxy.
+- **No Local State or Disk Writes:** No persistent storage or database is required or maintained. All requests are processed entirely in memory.
+- **Upstream Dependencies:** The service is self-contained for cryptographic verification using `soroauth` primitives and does not depend on a live Stellar RPC node for core signature verification (as it verifies the authorization entry payload directly using the provided network passphrase and public keys/credentials within the entry).
+
+### Configuration Reference
+
+Every bound has a default an operator does not have to set. Each is read from the environment at startup, and a malformed value refuses to start rather than falling back silently.
+
+| Variable                  | Default           | Meaning                                                                                                       |
+| ------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------- |
+| `ADDR`                    | `127.0.0.1:8080`  | API listen address. A non-loopback host requires `AUTH_TOKEN` (see below).                                    |
+| `METRICS_ADDR`            | `127.0.0.1:9090`  | Prometheus listen address. `off`, `none` or `-` disables the metrics server entirely.                         |
+| `AUTH_TOKEN`              | unset             | Bearer token `/verify` requires. Unset means no authentication, which is only allowed on a loopback bind.     |
+| `READ_TIMEOUT`            | `5s`              | Whole-request read deadline.                                                                                  |
+| `READ_HEADER_TIMEOUT`     | `5s`              | Header read deadline, the classic slowloris bound.                                                            |
+| `WRITE_TIMEOUT`           | `10s`             | Response write deadline.                                                                                      |
+| `IDLE_TIMEOUT`            | `120s`            | Keep-alive idle timeout.                                                                                      |
+| `MAX_BODY_BYTES`          | `1048576` (1 MiB) | Request body cap. An entry that decodes within the library's own depth limit fits well under it.              |
+| `MAX_CONCURRENT_REQUESTS` | `64`              | In-flight `/verify` handlers. A request over the bound is refused with `503` and `Retry-After`, never queued. |
+
+### Signals Worth Alerting On
+
+- **Rising 503 Refusal Rate (`soroauth_http_requests_total{status="503"}`):**
+  - *Indicates:* The concurrency bound (`MAX_CONCURRENT_REQUESTS = 64`) is saturated, or downstream clients are flooding the service.
+  - *Action:* Inspect client load patterns, verify whether requests are hanging due to slow network payloads or payload parsing overhead, and scale horizontal replicas if necessary.
+- **High Body-Too-Large or Decode Error Rate (`soroauth_verification_errors_total{reason="decode"}`):**
+  - *Indicates:* Clients are submitting malformed XDR blobs, truncated payloads, or oversized bodies exceeding `MAX_BODY_BYTES` (1 MiB).
+  - *Action:* Check client SDK integrations and ensure requests conform to the OpenAPI schema.
+- **Unreachable Metrics Port / Exporter Down:**
+  - *Indicates:* The metrics HTTP server failed to bind or the process crashed.
+  - *Action:* Check container exit logs for environment parsing errors or port binding conflicts.
+
+### Response Steps for Likely Failures
+
+#### 1. Wedged Signer / Non-Responsive Process
+- *Symptom:* HTTP health checks and `/verify` requests time out or fail to respond.
+- *Note on Architecture:* The verification service **does not sign** and has no internal signer state, secret keys, or HSM dependencies. A "wedged signer" applies only to external signing services interacting with the client, but if the verification service process itself hangs (e.g. goroutine leak or CPU exhaustion on extreme XDR recursion):
+- *Response Steps:* 
+  1. Check container metrics for CPU/memory exhaustion (`oom_killed` or CPU throttling).
+  2. Restart the container gracefully via orchestration (systemd, Kubernetes, ECS). The 10s graceful shutdown deadline ensures active requests drain cleanly.
+
+#### 2. Unreachable RPC / Network Disconnect
+- *Symptom:* Verification service logs or client workflows fail to fetch ledger state or network consensus data.
+- *Note on Architecture:* The verification service does **not** query Stellar RPC directly for normal entry verification; it operates purely offline on the supplied transaction authorization entry and network passphrase. If external integration tools relying on this service report RPC failures:
+- *Response Steps:* 
+  1. Verify network connectivity from the client/orchestrator layer to Stellar Horizon/RPC nodes independently of soroauth.
+  2. Ensure the network passphrase provided in the verification request matches the active Stellar network (Mainnet vs Testnet).
+
+-*
+*Bounded input.** The body is capped by `MAX_BODY_BYTES`, and the library
   refuses entries past its own decode-depth and size limits, so a hostile entry
   cannot drive unbounded decoding.
 - **Bounded concurrency.** At most `MAX_CONCURRENT_REQUESTS` verifications run
