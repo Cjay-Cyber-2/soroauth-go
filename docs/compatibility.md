@@ -8,13 +8,13 @@ surface.
 
 ## 1. Summary Matrix
 
-| Surface                | Governing Version Scheme            | Stability Promise                                                                                                | Minor Release Policy                                                                      |
-| ---------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| **Go API**             | Semantic Versioning (SemVer v2.0.0) | Stable API for `v1.0+`; pre-1.0 breaking changes may occur in minor releases.                                    | May introduce breaking API changes prior to `v1.0.0`; strict SemVer after `v1.0.0`.        |
-| **Wire Output**        | Protocol-governed (CAPs)            | 100% deterministic, byte-for-byte reproducibility against official Stellar SDK and reference implementations.      | Unaffected by soroauth minor versions; changes strictly follow Stellar Core Protocol upgrades and CAPs. |
-| **CLI Flags & Output** | Best-effort stability               | Flags are backward-compatible; stdout/json text output may evolve with new diagnostic details.                   | New flags may be added; existing flags are deprecated per the deprecation policy before removal. |
-| **JSON Shapes**        | Backward-compatible expansion       | JSON serialization of inspection, verification, and batch reports preserves existing fields.                     | New fields may be appended; existing fields are never renamed or removed without a major version bump. |
-| **Vector Schema**      | Versioned fixtures (`v0.1.0+`)      | Golden vectors under `testdata/vectors/` are immutable regression fixtures.                                      | Existing vectors are never modified by hand; new vectors are added alongside new CAPs or protocol versions. |
+| Surface | Governing Version Scheme | Stability Promise | Minor Release Policy |
+| :--- | :--- | :--- | :--- |
+| **Go API** | Semantic Versioning (SemVer v2.0.0) | Stable API for `v1.0+`; pre-1.0 breaking changes may occur in minor releases. | May introduce breaking API changes prior to `v1.0.0`; strict SemVer after `v1.0.0`. |
+| **Wire Output** | Protocol-governed (CAPs) | 100% deterministic, byte-for-byte reproducibility against official Stellar SDK and reference implementations. | Unaffected by soroauth minor versions; changes strictly follow Stellar Core Protocol upgrades and CAPs. |
+| **CLI Flags & Output** | Best-effort stability | Flags are backward-compatible; stdout/json text output may evolve with new diagnostic details. | New flags may be added; existing flags are deprecated per the deprecation policy before removal. |
+| **JSON Shapes** | Backward-compatible expansion | JSON serialization of inspection, verification, and batch reports preserves existing fields. | New fields may be appended; existing fields are never renamed or removed without a major version bump. |
+| **Vector Schema** | Versioned fixtures (`v0.1.0+`) | Golden vectors under `testdata/vectors/` are immutable regression fixtures. | Existing vectors are never modified by hand; new vectors are added alongside new CAPs or protocol versions. |
 
 ---
 
