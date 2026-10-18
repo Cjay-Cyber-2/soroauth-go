@@ -53,3 +53,7 @@ every offline implementation shares would stay green everywhere; only the host's
 verdict closes that gap, and only for the entries actually submitted. Anything
 the ledger knows — signer membership, consumed nonces, expiration at submission
 time — is not in the bytes being compared.
+
+## Library Scope
+
+For how this library and `soroauth-explain` separate bytes/structure from contract interpretation, see [How soroauth and soroauth-explain divide the problem](../../docs/split.md).
