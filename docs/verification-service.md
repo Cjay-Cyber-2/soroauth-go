@@ -110,8 +110,34 @@ be reachable wherever `/verify` is. `off`/`none`/`-` disables the listener.
 
 **Every label set is closed.** A value outside the set is clamped to a fallback
 rather than creating a new series, so no label can carry an address, a nonce or
-any other unbounded string — the usual way a metrics change takes down a
-Prometheus. A test walks every gathered series and asserts each label name and
+any other unbounded string — the usual way a metrics change 
+
+## Operational Runbook & Alerting Signals
+
+### Metrics Worth Alerting On
+
+1. **Rising Refusal Rate (`soroauth_verify_refusals_total`)**
+   - **What it indicates:** A spike in malformed payloads, invalid decoding, or oversized bodies. If the reason label points to transport or decoding limits (`body_too_large`, `decode_failed`), upstream clients are sending malformed or truncated authorization entries.
+   - **Action:** Inspect client-side serialization and ensure proxy body limits align with `MAX_BODY_BYTES`.
+
+2. **High 503 Concurrency Refusals (`soroauth_http_requests_total{status="503"}`)**
+   - **What it indicates:** The service is actively shedding load because in-flight requests exceed `MAX_CONCURRENT_REQUESTS` (default 64).
+   - **Action:** Scale horizontally behind a load balancer or raise concurrency limits if downstream host resources (CPU/memory) permit.
+
+3. **Elevated Request Latency (`soroauth_http_request_duration_seconds_bucket`)**
+   - **What it indicates:** Heavy or deeply nested delegate/sub-invocation structures taking excessive CPU time to decode and verify recursively.
+
+### Response Steps for Likely Failures
+
+- **Wedged Signer / Latency Spike:**
+  If signing hooks stall or block, verify that external KMS (AWS/GCP) connections or remote signers are reachable. Check outbound network connectivity, rate-limiting on KMS APIs, and authentication/credential rotation status.
+- **Unreachable RPC / Dependency Failure:**
+  While the verification service itself is stateless and relies purely on public cryptographic verification of self-contained entries, any upstream simulation or RPC reliance must be isolated. If the service experiences downstream timeout cascades, verify network paths and ensure timeouts (`READ_TIMEOUT`, `WRITE_TIMEOUT`) are tuned correctly to fail fast rather than thread-pool starve.
+
+### Deployment Assumptions
+
+- **Ephemeral and Stateless:** The verification service holds no database, persistent state, or session storage. Instances can be terminated, scaled, or replaced instantly behind any standard Layer 4/Layer 7 load balancer.
+- **Network Isolation:** The Prometheus metrics endpoint (`METRICS_ADDR`) should remain bound to loopback or a secure internal scraper network, while the API endpoint (`ADDR`) is fronted by a TLS-terminating proxy (such as Nginx, Envoy, or an ALB) with valid bearer token injection if exposed beyond loopback.
 value is in the set the code declares.
 
 - `method`: the standard methods; anything else is `other`.
