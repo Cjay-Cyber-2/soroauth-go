@@ -7,7 +7,10 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Status](https://img.shields.io/badge/status-unaudited-orange)](SECURITY.md#status-of-this-library)
 
-soroauth builds, signs and inspects Soroban authorization entries in Go. For the architectural split between structural validation here and semantic interpretation in `soroauth-explain`, see [docs/soroauth-explain.md](docs/soroauth-explain.md).
+soroauth builds, signs and inspects Soroban authorization entries in Go. For the
+architectural split between structural validation here and semantic
+interpretation in `soroauth-explain`, see
+[docs/soroauth-explain.md](docs/soroauth-explain.md).
 
 When a
 contract calls `require_auth()` on an address that is not the transaction's
