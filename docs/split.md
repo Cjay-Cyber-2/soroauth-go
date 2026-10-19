@@ -1,48 +1,40 @@
-# How soroauth and soroauth-explain divide the problem
+# How soroauth and soroauth-explain Divide the Problem
 
-This library (`soroauth` / `soroauth-go`) and its companion library `soroauth-explain` occupy distinct roles in handling Soroban authorization entries. Understanding this boundary is essential for working with either tool effectively.
+`soroauth` and `soroauth-explain` solve two complementary halves of Soroban authorization security. This document explains the exact boundary between them, why they are separate repositories/libraries, and what each is responsible for.
 
-## The Split: Bytes and Structure Here, Interpretation There
+## The Split
 
-- **`soroauth` (this library)**: Deals entirely with **bytes, structure, preimages, and signatures**. It constructs, signs, verifies, inspects, and decodes `SorobanAuthorizationEntry` XDR structures and their credential arms. It tells you *who* approved *what* call tree, what cryptographic preimage was signed, and whether the signature is structurally valid.
-- **`soroauth-explain`**: Deals entirely with **meaning and interpretation**. It takes a decoded authorization entry and interprets what the contract call actually does in human-readable terms (e.g., explaining that a specific invocation transfers 100 native XLM tokens, changes a policy parameter, or revokes a role).
+- **`soroauth` (this library): Bytes and Structure.**
+  It parses, validates, signs, diffs, and inspects XDR authorization entries at the byte and structure level. It guarantees that an entry is well-formed, that its signature is mathematically valid for the given network passphrase and signer address, and that its delegate trees and expiration ledgers follow the rules of CAP-71-01.
+
+- **`soroauth-explain`: Interpretation and Meaning.**
+  It answers *what an authorization entry actually does in human terms*—translating function arguments, invoking contract methods, inspecting token transfers, and explaining the contract business logic of an authorization payload.
 
 ## Why They Are Separate
 
-1. **Different Honesty Boundaries**: 
-   `soroauth` operates under strict cryptographic and protocol honesty boundaries. It performs no network calls, maintains no contract ABI registries, and makes no assumptions about what a contract function means. If a contract function is named `execute_malicious_drain`, `soroauth` reports that exact function name and leaves the judgment to the caller. Mixing interpretation logic into a signature-generation core would expand the trust and attack surface unnecessarily.
+1. **Different Honesty Boundaries:**
+   - `soroauth` is a security-critical signing library. Its correctness relies on minimal dependencies, strict adherence to XDR specs, cryptographic correctness, and zero ambiguity. It must be auditable and reproducible down to the exact byte.
+   - `soroauth-explain` deals with human-readable interpretation, contract ABIs, heuristic formatting, and rich explanations. These change rapidly as ecosystem tooling evolves and contract standards shift.
 
-2. **Different Failure Consequences**:
-   A bug in `soroauth` can lead to invalid signatures, failed transactions, or lost funds. A bug or limitation in an explainer library might produce an unclear or incomplete human description, which is a documentation or UX issue rather than a cryptographic failure.
+2. **Different Failure Consequences:**
+   - If `soroauth` misreads structure or bytes, transactions fail to sign, signatures are rejected, or funds are locked. Safety invariants are absolute.
+   - If `soroauth-explain` misinterprets a human-readable label or formats an argument unclearly, the user sees an imperfect summary, but the cryptographic authorization remains intact and secure.
 
-## Concrete Example: One Entry Through Both
+## Concrete Example: One Entry, Two Lenses
 
-Consider an authorization entry for a token transfer:
+Consider an incoming Soroban authorization entry invoking `transfer` on a token contract.
 
-### 1. What `soroauth` (`Inspect`) Sees
+1. **Through `soroauth inspect` (this library):**
+   Reports the structure:
+   - **Type:** `SorobanAuthorizationEntry` (v6)
+   - **Credentials:** Address `GABC...`, nonce `42`, signature valid.
+   - **Root Invocation:** Contract ID `C123...`, function `transfer`, argument count: 3.
+   - **Signatures / Tree:** Valid signature over the hash preimage, valid ledger bounds (`validUntilLedger: 5000000`).
 
-`soroauth` reports the structural facts:
-```json
-{
-  "credential_type": "address_v2",
-  "address_bound": true,
-  "address": "GCEZ…",
-  "nonce": 42,
-  "valid_until_ledger": 1234570,
-  "top_level_signed": true,
-  "root_contract": "CC…",
-  "root_function": "transfer",
-  "sub_invocations": 0
-}
-```
-It knows the credential arm, the signer address, the nonce, the ledger expiration, and that the root contract function is `transfer` with opaque XDR arguments.
+2. **Through `soroauth-explain`:**
+   Interprets the meaning:
+   - "This entry authorizes account `GABC...` to transfer **100 USDC** to account `GXYZ...` via contract `C123...` (USDC Token Contract), expiring at ledger ~5,000,000."
 
-### 2. What `soroauth-explain` Sees
+## Summary
 
-Using contract metadata, symbol registries, or ABIs, `soroauth-explain` interprets the entry:
-> **Authorized Action**: `GCEZ…` authorizes contract `CC…` to execute `transfer(to: GBUY…, amount: 10000000)`. This moves `1.0000000 XLM` from the signer's account.
-
-## Linked References
-
-- See the primary documentation index in [`docs/README.md`](README.md).
-- See [`soroauth-explain`](https://github.com/soroauth/soroauth-explain) for interpretation features.
+`soroauth` tells you **that** an entry is valid and signed correctly. `soroauth-explain` tells you **what** it asks you to approve.
