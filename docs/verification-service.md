@@ -108,37 +108,7 @@ be reachable wherever `/verify` is. `off`/`none`/`-` disables the listener.
 | `soroauth_verify_refusals_total`         | counter   | `reason`                     | Verification and transport refusals, by reason.       |
 | `soroauth_signer_duration_seconds`       | histogram | `phase`, `credential_type`   | Signing-phase latency, fed by `soroauth.Hook` events. |
 
-**Every label set is closed.** A value outside the set is clamped to a fallback
-rather than creating a new series, so no label can carry an address, a nonce or
-any other unbounded string — the usual way a metrics change 
-
-## Operational Runbook & Alerting Signals
-
-### Metrics Worth Alerting On
-
-1. **Rising Refusal Rate (`soroauth_verify_refusals_total`)**
-   - **What it indicates:** A spike in malformed payloads, invalid decoding, or oversized bodies. If the reason label points to transport or decoding limits (`body_too_large`, `decode_failed`), upstream clients are sending malformed or truncated authorization entries.
-   - **Action:** Inspect client-side serialization and ensure proxy body limits align with `MAX_BODY_BYTES`.
-
-2. **High 503 Concurrency Refusals (`soroauth_http_requests_total{status="503"}`)**
-   - **What it indicates:** The service is actively shedding load because in-flight requests exceed `MAX_CONCURRENT_REQUESTS` (default 64).
-   - **Action:** Scale horizontally behind a load balancer or raise concurrency limits if downstream host resources (CPU/memory) permit.
-
-3. **Elevated Request Latency (`soroauth_http_request_duration_seconds_bucket`)**
-   - **What it indicates:** Heavy or deeply nested delegate/sub-invocation structures taking excessive CPU time to decode and verify recursively.
-
-### Response Steps for Likely Failures
-
-- **Wedged Signer / Latency Spike:**
-  If signing hooks stall or block, verify that external KMS (AWS/GCP) connections or remote signers are reachable. Check outbound network connectivity, rate-limiting on KMS APIs, and authentication/credential rotation status.
-- **Unreachable RPC / Dependency Failure:**
-  While the verification service itself is stateless and relies purely on public cryptographic verification of self-contained entries, any upstream simulation or RPC reliance must be isolated. If the service experiences downstream timeout cascades, verify network paths and ensure timeouts (`READ_TIMEOUT`, `WRITE_TIMEOUT`) are tuned correctly to fail fast rather than thread-pool starve.
-
-### Deployment Assumptions
-
-- **Ephemeral and Stateless:** The verification service holds no database, persistent state, or session storage. Instances can be terminated, scaled, or replaced instantly behind any standard Layer 4/Layer 7 load balancer.
-- **Network Isolation:** The Prometheus metrics endpoint (`METRICS_ADDR`) should remain bound to loopback or a secure internal scraper network, while the API endpoint (`ADDR`) is fronted by a TLS-terminating proxy (such as Nginx, Envoy, or an ALB) with valid bearer token injection if exposed beyond loopback.
-value is in the set the code declares.
+**Every label set is closed.** A value outside the set is clamped to a fallback rather than creating a new series, so no label can carry an address, a nonce or any other unbounded string — the usual way a metrics change value is in the set the code declares.
 
 - `method`: the standard methods; anything else is `other`.
 - `route`: `/verify`, `/healthz`, or `unmatched` — the path is logged as the
@@ -165,11 +135,66 @@ rather than signs today, so the histogram is empty until signing is added; the
 dashboard's panel says so.
 
 A reference Grafana dashboard is committed at
-[`docs/dashboards/soroauth-verification.json`](dashboards/soroauth-verification.json),
+[`docs/dashboards/soroauth-verification.json`](dashboards/dashboards/soroauth-verification.json),
 and [`docs/dashboards/example-metrics.txt`](dashboards/example-metrics.txt) is
 an export from a real run of the endpoint, so the dashboard queries are known to
 have data behind them. Import the JSON and point its `DS_PROMETHEUS` input at
 the Prometheus scraping `METRICS_ADDR`.
+
+## Runbook & Operations
+
+### Deployment Assumptions
+
+- **Stateless & Shared Nothing:** The service does not write to disk, maintain session state, or connect to a database. Multiple replicas can sit behind a standard HTTP load balancer.
+- **Network Boundary:** The API port (`ADDR`) may be exposed to clients, but the metrics port (`METRICS_ADDR`) must remain internal or restricted to scraping infrastructure (Prometheus).
+- **Signer Isolation:** The verification service performs pure computation on public data (signatures and XDR). If a signing component or RPC dependency is attached in future deployment topologies, it must be isolated from public ingress with strict network policies.
+\- **Reverse Proxy / TLS Terminating Edge:** The binary implements plain HTTP only. All production deployments must terminate TLS at an upstream load balancer or reverse proxy.
+
+### Configuration Reference
+
+| Variable                  | Default           | Effect / Description |
+| ------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `ADDR`                    | `127.0.0.1:8080`  | Address and port for the primary HTTP API listener. Binding to non-loopback interfaces requires setting `AUTH_TOKEN`. |
+| `METRICS_ADDR`            | `127.0.0.1:9090`  | Address and port for the Prometheus metrics exporter endpoint. Set to `off`, `none`, or `-` to disable. |
+| `AUTH_TOKEN`              | unset             | Shared secret bearer token required on `/verify`. Mandatory for non-loopback API bindings. |
+| `READ_TIMEOUT`            | `5s`              | Maximum duration for reading the entire request, including the body. |
+| `READ_HEADER_TIMEOUT`     | `5s`              | Maximum duration for reading request headers (mitigates slowloris attacks). |
+| `WRITE_TIMEOUT`           | `10s`             | Maximum duration for writing the HTTP response. |
+| `IDLE_TIMEOUT`            | `120s`            | Maximum time to wait for the next request when keep-alives are enabled. |
+| `MAX_BODY_BYTES`          | `1048576` (1 MiB) | Maximum allowed request body size in bytes. Larger payloads are rejected with HTTP 413. |
+| `MAX_CONCURRENT_REQUESTS` | `64`              | Maximum concurrent active `/verify` requests. Excess requests are immediately rejected with HTTP 503 and a `Retry-After` header. |
+
+### Alerting Signals
+
+| Alert Signal / Metric | Condition | Indication | Recommended Action |
+| --------------------- | --------- | ---------- | ------------------ |
+| **High 5xx Error Rate** | `rate(soroauth_http_requests_total{status=~"5.."}[5m]) > 0` | Internal server errors or panic recoveries occurring. | Inspect service logs for error stack traces; verify resource constraints or memory leaks. |
+| **High Refusal Rate / Overload** | `rate(soroauth_verify_refusals_total{reason="overloaded"}[5m]) > 0` | Concurrency cap (`MAX_CONCURRENT_REQUESTS`) is being hit frequently. Clients are receiving HTTP 503 responses. | Scale out service replicas behind the load balancer or increase resource limits. |
+| **Elevated Latency** | `histogram_quantile(0.99, rate(soroauth_http_request_duration_seconds_bucket[5m])) > 2.0` | CPU starvation, garbage collection pauses, or large payloads saturating decoders. | Inspect CPU usage, request body distribution, and host resource metrics. |
+| **Metrics Scrape Failure** | Target down in Prometheus | Prometheus cannot scrape `METRICS_ADDR`. | Verify `METRICS_ADDR` network reachability, process health, and container port mappings. |
+
+### Response Steps for Likely Failures
+
+#### 1. Wedged Signer / Hung Processing
+- **Symptoms:** Request latency spikes, `WRITE_TIMEOUT` or connection dropouts increase, and active connections stall.
+- **Response:**
+  1. Check process health and CPU utilization using container metrics or host tools (`top`, `docker stats`).
+  2. Inspect structured logs for goroutine blocking or long-running verification chains.
+  3. If the process is unresponsive, terminate or restart the container/process. Because the service is fully stateless, restarts are instantaneous and safe.
+  4. Review incoming request payload distributions (`MAX_BODY_BYTES`) to rule out deeply nested XDR attack vectors causing decoder lockup.
+
+#### 2. Unreachable RPC / Upstream Dependency Failure
+- **Symptoms:** Verification requests fail with internal or cannot-check verdicts due to missing ledger state or network checks.
+- **Response:**
+  1. Note that the core verification service is designed to operate on self-contained entry payloads without live RPC dependencies. If an auxiliary RPC or network dependency has been integrated, verify its connectivity and health endpoints independently.
+  2. Check local network policies, DNS resolution, and firewall rules between the verification host and any upstream ledger providers.
+  3. If external dependencies are entirely down, verify that client traffic is rerouted via load balancer health checks (`/healthz`).
+
+#### 3. Startup Refusal: Missing Auth Token on Public Bind
+- **Symptoms:** Service exits immediately upon startup with an error message regarding binding rules.
+- **Response:**
+  1. Ensure `AUTH_TOKEN` is supplied when `ADDR` is configured to listen on a non-loopback interface (e.g., `0.0.0.0:8080`).
+  2. Alternatively, restrict `ADDR` to `127.0.0.1:8080` if local-only usage is intended.
 
 ## Running it
 
