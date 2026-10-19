@@ -43,6 +43,7 @@ navigation.
 | --------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | [analyzer-heuristics](analyzer-heuristics.md) | What each risk-analyzer heuristic catches and what it misses.                                             |
 | [glossary](glossary.md)                       | What credential arm, preimage, payload, nonce and delegate ordering mean, with the CAP that defines each. |
+| [soroauth-explain-split](soroauth-explain-split.md) | How soroauth and soroauth-explain divide bytes/structure from semantic interpretation. |
 | [security-analysis](security-analysis.md)     | How CodeQL and dependency review run in CI, and how static-analysis findings are triaged.                 |
 | [FIXTURES](FIXTURES.md)                       | What each e2e fixture contract exercises, and why none is a product.                                      |
 | [ISSUE_BACKLOG](ISSUE_BACKLOG.md)             | The written-up work that is not done yet; `WAVE9_BACKLOG.json` is the newer Wave's source of truth.       |

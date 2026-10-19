@@ -9,6 +9,9 @@ project's own, it says so — so nobody goes looking for `AuthorizeAll` in a CAP
 
 ## The entry
 
+*See also [How soroauth and soroauth-explain divide the problem](soroauth-explain-split.md) for the boundary between wire/structure validation and semantic contract interpretation.*
+
+
 **Authorization entry** (`SorobanAuthorizationEntry`) — what a transaction
 carries so a contract's `require_auth()` can succeed for an address that is not
 the transaction's source account. It has two halves: the **invocation tree**,

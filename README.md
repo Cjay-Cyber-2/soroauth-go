@@ -37,6 +37,7 @@ credential arms: legacy `SOROBAN_CREDENTIALS_ADDRESS`, CAP-71
 - [Browser and WebAssembly](#browser-and-webassembly)
 - [Proven on testnet](#proven-on-testnet)
 - [FAQ](#faq)
+- [Soroauth vs Soroauth-Explain](docs/soroauth-explain-split.md)
 - [Status](#status)
 - [Contributing](#contributing)
 - [License](#license)
