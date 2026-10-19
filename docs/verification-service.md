@@ -98,25 +98,26 @@ below already carry a signer-latency signal for when it arrives.
 
 ### 1. Configuration reference
 
-Every option is read from the environment at startup. A malformed value refuses to start rather than falling back silently.
+Every option is read from the environment at startup. A malformed value refuses
+to start rather than falling back silently.
 
-| Variable | Default | Meaning & Effect |
-| --- | --- | --- |
-| `ADDR` | `127.0.0.1:8080` | API listen address. Non-loopback binds require `AUTH_TOKEN`. |
-| `METRICS_ADDR` | `127.0.0.1:9090` | Prometheus listen address (`off`, `none`, or `-` disables metrics). |
-| `AUTH_TOKEN` | unset | Bearer token required for `/verify`. Mandatory for non-loopback binds. |
-| `READ_TIMEOUT` | `5s` | Whole-request read deadline. Prevents slow-client starvation. |
-| `READ_HEADER_TIMEOUT` | `5s` | Header read deadline (slowloris mitigation). |
-| `WRITE_TIMEOUT` | `10s` | Response write deadline. |
-| `IDLE_TIMEOUT` | `120s` | HTTP keep-alive idle timeout. |
-| `MAX_BODY_BYTES` | `1048576` (1 MiB) | Request body size cap. Protects against excessive memory allocation during XDR decode. |
-| `MAX_CONCURRENT_REQUESTS` | `64` | Maximum in-flight `/verify` requests. Excess requests receive `503 Service Unavailable` with `Retry-After` immediately without queueing. |
+| Variable                  | Default           | Meaning & Effect                                                                                                                              |
+| ------------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ADDR`                    | `127.0.0.1:8080`  | API listen address. Non-loopback binds require `AUTH_TOKEN`.                                                                                  |
+| `METRICS_ADDR`            | `127.0.0.1:9090`  | Prometheus listen address (`off`, `none`, or `-` disables metrics).                                                                           |
+| `AUTH_TOKEN`              | unset             | Bearer token required for `/verify`. Mandatory for non-loopback binds.                                                                        |
+| `READ_TIMEOUT`            | `5s`              | Whole-request read deadline. Prevents slow-client starvation.                                                                                 |
+| `READ_HEADER_TIMEOUT`     | `5s`              | Header read deadline (slowloris mitigation).                                                                                                  |
+| `WRITE_TIMEOUT`           | `10s`             | Response write deadline.                                                                                                                      |
+| `IDLE_TIMEOUT`            | `120s`            | HTTP keep-alive idle timeout.                                                                                                                 |
+| `MAX_BODY_BYTES`          | `1048576` (1 MiB) | Request body size cap. Protects against excessive memory allocation during XDR decode.                                                        |
+| `MAX_CONCURRENT_REQUESTS` | `64`              | Maximum in-flight `/verify` requests. Excess requests receive `503 Service Unavailable` with `Retry-After` immediately without queueing.      |
 
 ### 2. Signals and alerts
 
 Monitor these key Prometheus metrics exposed on `METRICS_ADDR`:
 
-- **Rising Refusal Rate (`soroauth_verify_refusals_total` / `soroauth_http_requests_total`)**: 
+- **Rising Refusal Rate (`soroauth_verify_refusals_total` / `soroauth_http_requests_total`)**:
   - *Indicates*: Client sending malformed entries, exceeding body/concurrency limits, or unauthorized requests.
   - *Action*: Inspect client logs, verify payload serialization versions and SDK compatibility.
 - **High Latency on `/verify` (`soroauth_http_request_duration_seconds`)**:
@@ -129,13 +130,15 @@ Monitor these key Prometheus metrics exposed on `METRICS_ADDR`:
 ### 3. Failure response procedures
 
 #### A. Wedged signer / Unresponsive verification pipeline
+
 - **Symptoms**: `/verify` requests hang until `WRITE_TIMEOUT` or return `503`, while `/healthz` may or may not respond.
-- **Response Steps**:
+- **Response Steps»**:
   1. Check process memory and CPU consumption (`top`, `docker stats`).
   2. Verify that no goroutine leaks or deadlock conditions exist under high concurrent delegate graph verification.
   3. If unresponsive, trigger a graceful restart or container recreation. Since the service is stateless and holds no signing keys, restarts are completely safe.
 
 #### B. Unreachable upstream RPC or network partition
+
 - **Symptoms**: Although the verification service operates purely on self-contained cryptographic inputs (public entries and passphrases), deployment environments feeding entries into it may experience upstream RPC disconnects.
 - **Response Steps**:
   1. Verify network connectivity to Stellar RPC endpoints if intermediate proxies or admission controllers query RPC state.
