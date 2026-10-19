@@ -19,6 +19,7 @@ navigation.
 | [SUPPORT](../SUPPORT.md)           | Where to ask questions, how issues are triaged, and what versions receive fixes.                           |
 | [CHANGELOG](../CHANGELOG.md)       | What changed in each release.                                                                              |
 | [faq](faq.md)                      | Why soroauth behaves as it does: the recurring design questions, each with its source.                     |
+| [soroauth-explain split](soroauth-explain-split.md) | The architectural split between soroauth (bytes and structure) and soroauth-explain (interpretation). |
 
 ## Guides
 

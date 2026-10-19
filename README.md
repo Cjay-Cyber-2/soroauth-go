@@ -37,6 +37,7 @@ credential arms: legacy `SOROBAN_CREDENTIALS_ADDRESS`, CAP-71
 - [Browser and WebAssembly](#browser-and-webassembly)
 - [Proven on testnet](#proven-on-testnet)
 - [FAQ](#faq)
+- [How soroauth and soroauth-explain divide the problem](docs/soroauth-explain-split.md)
 - [Status](#status)
 - [Contributing](#contributing)
 - [License](#license)
@@ -1170,6 +1171,8 @@ and the demo.
 
 The wrapper calls through to the same Go code as the native library, so there is
 no second implementation of the signing logic to drift.
+
+For the relationship between structure and interpretation, see [How soroauth and soroauth-explain divide the problem](docs/soroauth-explain-split.md).
 
 For the full passkey flow — browser ceremony, assertion verification, and what
 is (and is not yet) proven — see [docs/passkeys.md](docs/passkeys.md). Replacing
