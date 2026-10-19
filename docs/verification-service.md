@@ -132,7 +132,7 @@ Monitor these key Prometheus metrics exposed on `METRICS_ADDR`:
 #### A. Wedged signer / Unresponsive verification pipeline
 
 - **Symptoms**: `/verify` requests hang until `WRITE_TIMEOUT` or return `503`, while `/healthz` may or may not respond.
-- **Response Steps»**:
+- **Response Steps**:
   1. Check process memory and CPU consumption (`top`, `docker stats`).
   2. Verify that no goroutine leaks or deadlock conditions exist under high concurrent delegate graph verification.
   3. If unresponsive, trigger a graceful restart or container recreation. Since the service is stateless and holds no signing keys, restarts are completely safe.
