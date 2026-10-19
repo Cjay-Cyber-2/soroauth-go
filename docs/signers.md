@@ -1,5 +1,7 @@
 # Choosing a signer
 
+For instructions on how to add a new signer adapter, see [contributing-signers](contributing-signers.md).
+
 The signer is the security boundary. `soroauth.Signer` only asks for an address
 and for a signature `ScVal`; the real difference between implementations is
 where the private key lives, what trust boundary the signer crosses, and what
