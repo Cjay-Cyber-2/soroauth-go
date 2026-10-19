@@ -34,7 +34,7 @@ navigation.
 | [verification-service](verification-service.md) | How to run the HTTP verification service, and what it will and will not do.                                        |
 | [sdk-support](sdk-support.md)                   | Which `go-stellar-sdk` versions are supported and how the pin moves.                                               |
 | [browser](browser.md)                           | How to use soroauth from a browser page: installing and loading the wasm module, and the passkey flow.             |
-| [soroauth-explain](soroauth-explain.md)           | How soroauth and soroauth-explain divide bytes/structure versus interpretation.                      |
+| [soroauth-explain](soroauth-explain.md)         | How soroauth and soroauth-explain divide bytes/structure versus interpretation.                                    |
 | [fixture-quickstart](fixture-quickstart.md)     | How to run the e2e fixture contracts against a local Stellar quickstart container.                                 |
 | [reproducibility](reproducibility.md)           | How to reproduce the released CLI binaries byte-for-byte from a tagged source checkout.                            |
 

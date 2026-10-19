@@ -37,7 +37,8 @@ an authorization entry means is deliberately not done here.
 
 ## Concrete Comparison: One Entry Through Both
 
-Consider an authorization entry for a token transfer contract call (`transfer(from, to, amount)`):
+Consider an authorization entry for a token transfer contract call
+(`transfer(from, to, amount)`):
 
 - **`soroauth` (`Inspect`) reports:**
 
@@ -53,8 +54,10 @@ Consider an authorization entry for a token transfer contract call (`transfer(fr
 
 - **`soroauth-explain` reports:**
 
-  - Intent: "Transfer 100.00 USDC from `GA3...` to `GB7...` via Stellar Asset Contract `CC4...`"
-  - Security advisory: "This contract is verified on Stellar Expert; recipient `GB7...` is a known exchange address."
+  - Intent: "Transfer 100.00 USDC from `GA3...` to `GB7...` via Stellar Asset
+    Contract `CC4...`"
+  - Security advisory: "This contract is verified on Stellar Expert; recipient
+    `GB7...` is a known exchange address."
 
 Neither library tries to do the other's job. `soroauth` guarantees the bytes
 and signature are correct; `soroauth-explain` tells you what those bytes mean for
