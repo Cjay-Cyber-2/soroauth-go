@@ -26,6 +26,7 @@ navigation.
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | [labels](labels.md)                             | What each complexity and area label means, who applies it, and who has the final say on complexity.                |
 | [signers](signers.md)                           | Which signer to use for a given threat model, and what evidence backs each one.                                    |
+| [contributing-a-signer](contributing-a-signer.md) | How to implement a new signer adapter, follow the Signer contract, avoid traps, and wire up tests. |
 | [signing-flow](signing-flow.md)                 | The record, sign, enforce, assemble and submit sequence, with the responsible function at each step.               |
 | [passkeys](passkeys.md)                         | How to sign for a WebAuthn / passkey smart wallet, end to end.                                                     |
 | [migrating](migrating.md)                       | How to replace hand-rolled auth-entry signing with soroauth and verify it produced identical bytes.                |
