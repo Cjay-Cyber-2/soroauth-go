@@ -25,7 +25,7 @@ navigation.
 | Document                                        | Answers                                                                                                            |
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | [labels](labels.md)                             | What each complexity and area label means, who applies it, and who has the final say on complexity.                |
-| [contributing-signer](contributing-signer.md)       | How to implement a new signer adapter: the contract, conformance suite, recurring traps, and evidence.               |
+| [contributing-signer](contributing-signer.md)   | How to implement a new signer adapter: the contract, conformance suite, recurring traps, and evidence.               |
 | [signers](signers.md)                           | Which signer to use for a given threat model, and what evidence backs each one.                                    |
 | [signing-flow](signing-flow.md)                 | The record, sign, enforce, assemble and submit sequence, with the responsible function at each step.               |
 | [passkeys](passkeys.md)                         | How to sign for a WebAuthn / passkey smart wallet, end to end.                                                     |
