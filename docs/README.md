@@ -33,6 +33,7 @@ navigation.
 | [verification-limits](verification-limits.md)   | What `soroauth verify` can and cannot establish offline.                                                           |
 | [verification-service](verification-service.md) | How to run the HTTP verification service, and what it will and will not do.                                        |
 | [sdk-support](sdk-support.md)                   | Which `go-stellar-sdk` versions are supported and how the pin moves.                                               |
+| [versioning-promises](versioning-promises.md)   | The versioning and compatibility promises for Go API, wire output, CLI flags, JSON and vector schema.|
 | [browser](browser.md)                           | How to use soroauth from a browser page: installing and loading the wasm module, and the passkey flow.             |
 | [fixture-quickstart](fixture-quickstart.md)     | How to run the e2e fixture contracts against a local Stellar quickstart container.                                 |
 | [reproducibility](reproducibility.md)           | How to reproduce the released CLI binaries byte-for-byte from a tagged source checkout.                            |
