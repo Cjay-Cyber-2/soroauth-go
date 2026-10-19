@@ -6,13 +6,13 @@ rely on across each interface.
 
 ## Summary Matrix
 
-| Surface                                | Governing Version Scheme       | Stability Level                          | Can Change in Minor Release?     |
-| -------------------------------------- | ------------------------------ | ---------------------------------------- | -------------------------------- |
-| **Go API**                             | Semantic Versioning (SemVer)   | Pre-1.0 (v0.x) unstable API; 1.0+ stable | Yes (for v0.x) / No (for v1.0+)  |
-| **Wire Output (Preimages & Signatures)** | Stellar Protocol / CAP-governed | Protocol-bound (absolute)                | Yes, when protocol or CAPs требо |
-| **CLI Flags & Commands**               | Semantic Versioning (SemVer)   | Unstable / Best-effort                   | Yes                              |
-| **JSON Shapes & RPC Responses**        | Semantic Versioning (SemVer)   | Experimental / Evolving                  | Yes                              |
-| **Vector Schema**                      | Internal testdata versioning   | Schema-versioned                         | Yes                              |
+| Surface | Governing Version Scheme | Stability Level | Can Change in Minor Release? |
+| :--- | :--- | :--- | :--- |
+| **Go API** | Semantic Versioning (SemVer) | Pre-1.0 (v0.x) unstable API; 1.0+ stable | Yes (for v0.x) / No (for v1.0+) |
+| **Wire Output (Preimages & Signatures)** | Stellar Protocol / CAP-governed | Protocol-bound (absolute) | Yes, when protocol or CAPs require |
+| **CLI Flags & Commands** | Semantic Versioning (SemVer) | Unstable / Best-effort | Yes |
+| **JSON Shapes & RPC Responses** | Semantic Versioning (SemVer) | Experimental / Evolving | Yes |
+| **Vector Schema** | Internal testdata versioning | Schema-versioned | Yes |
 
 ---
 
