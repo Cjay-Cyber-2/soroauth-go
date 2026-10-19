@@ -108,8 +108,7 @@ Every bound has a default an operator does not have to set. Each is read from th
   1. Verify network connectivity from the client/orchestrator layer to Stellar Horizon/RPC nodes independently of soroauth.
   2. Ensure the network passphrase provided in the verification request matches the active Stellar network (Mainnet vs Testnet).
 
--*
-*Bounded input.** The body is capped by `MAX_BODY_BYTES`, and the library
+- **Bounded input.** The body is capped by `MAX_BODY_BYTES`, and the library
   refuses entries past its own decode-depth and size limits, so a hostile entry
   cannot drive unbounded decoding.
 - **Bounded concurrency.** At most `MAX_CONCURRENT_REQUESTS` verifications run
