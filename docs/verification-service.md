@@ -94,6 +94,78 @@ If signing is ever added to this service, authentication stops being optional:
 the token check and its fail-closed bind already assume that, and the metrics
 below already carry a signer-latency signal for when it arrives.
 
+## Operational Runbook
+
+### 1. Configuration Reference
+
+Every option is read from the environment at startup. A malformed value causes the process to abort immediately rather than falling back silently.
+
+| Variable | Default | Meaning & Effect | Failure Mode on Malformed Value |
+| --- | --- | --- | --- |
+| `ADDR` | `127.0.0.1:8080` | TCP host and port for the API server. Binding to a non-loopback interface requires `AUTH_TOKEN` to be set. | Process fails to bind (EADDRINUSE or permission denied) or refuses to start if non-loopback lacks token. |
+| `METRICS_ADDR` | `127.0.0.1:9090` | TCP host and port for Prometheus metrics scraping. Set to `off`, `none`, or `-` to disable the metrics listener. | Startup aborts if port is invalid or already bound. |
+| `AUTH_TOKEN` | unset | Bearer token required for all `/verify` requests. Unset means no authentication, restricted strictly to loopback addresses. | Process fails to start if `ADDR` is non-loopback and `AUTH_TOKEN` is missing. |
+| `READ_TIMEOUT` | `5s` | Maximum duration for reading the entire request, including the body. | HTTP 408 Request Timeout / connection dropped. |
+| `READ_HEADER_TIMEOUT` | `5s` | Maximum duration for reading request headers (mitigates Slowloris attacks). | Connection terminated abruptly. |
+| `WRITE_TIMEOUT` | `10s` | Maximum duration before timing out writes of the HTTP response. | Server cancels write, client receives truncated or reset connection. |
+| `IDLE_TIMEOUT` | `120s` | Maximum time to wait for the next request when keep-alives are enabled. | Keep-alive connection closed. |
+| `MAX_BODY_BYTES` | `1048576` (1 MiB) | Strict upper bound on request body size. Larger bodies are rejected before XDR decoding. | HTTP 413 Payload Too Large. |
+| `MAX_CONCURRENT_REQUESTS` | `64` | Maximum in-flight `/verify` evaluations allowed simultaneously. | HTTP 503 Service Unavailable with `Retry-After` header. |
+
+### 2. Metrics & Alerting Signals
+
+Operators should configure Prometheus and Alertmanager to watch the following key signals:
+
+- **Rising Refusal Rate (`soroauth_verify_refusals_total`):**
+  - *Indicator:* A sharp or sustained increase in refusals categorized by reason (`invalid_body`, `decode_error`, `depth_exceeded`, `unsupported_arm`).
+  - *Meaning:* Clients are submitting malformed payloads, out-of-spec authorization entries, or unsupported credential types. If specific clients spike in refusals, coordinate with client teams to validate their XDR serialization and SDK versions.
+
+- **HTTP 503 Overload (`soroauth_http_requests_total{status="503"}`):**
+  - *Indicator:* Non-zero or rising count of 503 responses.
+  - *Meaning:* The concurrency ceiling (`MAX_CONCURRENT_REQUESTS = 64`) is saturated. The service is rejecting excess traffic rather than queuing. 
+  - *Action:* Scale horizontally behind a load balancer or evaluate if downstream clients are retrying aggressively.
+
+- **Elevated Verification Latency (`soroauth_http_request_duration_seconds`):**
+  - *Indicator:* P95 or P99 latency exceeding 50ms for the `/verify` route.
+  - *Meaning:* Although stateless verification is computationally bounded, excessive nesting depth in authorization delegate trees or deep ScVal structures can inflate CPU usage. Inspect request size payloads.
+
+- **Signer Latency / Activity (`soroauth_signer_duration_seconds`):**
+  - *Indicator:* Spikes in signing phase duration.
+  - *Meaning:* While the standalone verification service does not sign, custom deployments or integrations embedding signing hooks may experience HSM or external KMS latency. Watch for queueing or rate limits at the upstream signer.
+
+### 3. Failure Response Playbook
+
+#### Scenario A: Wedged Signer / Unresponsive Integration Hook
+- *Symptom:* Requests hang or saturate `MAX_CONCURRENT_REQUESTS`, leading to 503 spikes and timeouts.
+- *Diagnosis:* Check container resource utilization (CPU/Memory). Verify if any custom signer hooks or downstream KMS wrappers are blocking indefinitely.
+- *Response Steps:* 
+  1. If container is non-responsive, invoke graceful shutdown (or SIGTERM). The process drains active requests up to the 10s deadline.
+  2. If Kubernetes orchestrates deployment, restart the pod via `kubectl rollout restart deployment/soroauth-verifier`.
+  3. Investigate external signer connectivity and IAM credential validity if KMS integration is active.
+
+#### Scenario B: Unreachable RPC or Network Partition
+- *Symptom:* Verification service itself remains live (`/healthz` returns 200 OK), but upstream verification dependencies or telemetry sinks fail.
+- *Diagnosis:* Check container egress rules, DNS resolution, and Stellar RPC endpoint reachability (`curl -X POST ...`).
+- *Response Steps:* 
+  1. Note that the verification service is designed to be **stateless and self-contained**: it does *not* make live RPC calls during standard `VerifyEntry` execution (as verification requires public data only: entry, passphrase, optional expiration). 
+  2. If the service is integrated into a larger signing or simulation pipeline that *does* rely on RPC, verify RPC provider status.
+  3. If DNS/routing failures affect metrics emission (`METRICS_ADDR`), verify Prometheus scraper connectivity.
+
+#### Scenario C: Memory Pressure / OOM Killer Termination
+- *Symptom:* Container restarts unexpectedly with exit code 137.
+- *Diagnosis:* Inspect kernel logs (`dmesg -T | grep -i oom`) and Prometheus memory usage metrics.
+- *Response Steps:* 
+  1. Extremely large or deeply nested hostile XDR structures can temporarily spike heap allocations during recursive decoding.
+  2. Verify that `MAX_BODY_BYTES` is strictly enforced at 1 MiB.
+  3. Adjust container memory limits upward (recommended minimum: 256 MiB headroom) if legitimate multi-delegate trees cause memory spikes.
+
+### 4. Deployment Assumptions & Threat Model Summary
+
+- **Stateless & Scalable:** The service maintains no session state, database, or local cache. It can be scaled horizontally behind any standard Layer 4 or Layer 7 load balancer.
+- **Network Topology:** Deploy behind a TLS-terminating reverse proxy (e.g., Nginx, Envoy, or cloud load balancer). The service itself speaks plain HTTP.
+- **Resource Boundaries:** CPU-bound verification ensures predictable resource profiles. Memory bounds are enforced via strict body sizing and XDR depth limits.
+- **Security Isolation:** Operates with zero secrets or private keys in memory. Even complete container compromise yields no signing credentials.
+
 ## Metrics
 
 The service exposes Prometheus metrics on `METRICS_ADDR`, **separate from the
