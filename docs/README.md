@@ -20,6 +20,8 @@ navigation.
 | [CHANGELOG](../CHANGELOG.md)       | What changed in each release.                                                                              |
 | [faq](faq.md)                                       | Why soroauth behaves as it does: the recurring design questions, each with its source.                     |
 | [soroauth-explain split](soroauth-explain-split.md) | The architectural split between soroauth (bytes and structure) and soroauth-explain (interpretation).      |
+| [faq](faq.md)                                       | Why soroauth behaves as it does: the recurring design questions, each with its source.                     |
+| [soroauth-explain split](soroauth-explain-split.md) | The architectural split between soroauth (bytes and structure) and soroauth-explain (interpretation).      |
 
 ## Guides
 
