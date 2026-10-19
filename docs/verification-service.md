@@ -135,7 +135,7 @@ rather than signs today, so the histogram is empty until signing is added; the
 dashboard's panel says so.
 
 A reference Grafana dashboard is committed at
-[`docs/dashboards/soroauth-verification.json`](dashboards/dashboards/soroauth-verification.json),
+[`docs/dashboards/soroauth-verification.json`](dashboards/soroauth-verification.json),
 and [`docs/dashboards/example-metrics.txt`](dashboards/example-metrics.txt) is
 an export from a real run of the endpoint, so the dashboard queries are known to
 have data behind them. Import the JSON and point its `DS_PROMETHEUS` input at
@@ -148,7 +148,7 @@ the Prometheus scraping `METRICS_ADDR`.
 - **Stateless & Shared Nothing:** The service does not write to disk, maintain session state, or connect to a database. Multiple replicas can sit behind a standard HTTP load balancer.
 - **Network Boundary:** The API port (`ADDR`) may be exposed to clients, but the metrics port (`METRICS_ADDR`) must remain internal or restricted to scraping infrastructure (Prometheus).
 - **Signer Isolation:** The verification service performs pure computation on public data (signatures and XDR). If a signing component or RPC dependency is attached in future deployment topologies, it must be isolated from public ingress with strict network policies.
-\- **Reverse Proxy / TLS Terminating Edge:** The binary implements plain HTTP only. All production deployments must terminate TLS at an upstream load balancer or reverse proxy.
+- **Reverse Proxy / TLS Terminating Edge:** The binary implements plain HTTP only. All production deployments must terminate TLS at an upstream load balancer or reverse proxy.
 
 ### Configuration Reference
 
