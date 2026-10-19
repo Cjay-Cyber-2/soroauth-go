@@ -51,41 +51,41 @@ as "public internet, unexamined". What is now safe and what is still not:
 **Safe by construction.**
 
 - **No secret can reach it.** Verification needs public data only — the entry,
-the network passphrase, an optional expiration assertion — so there is no
-field that accepts a seed, nothing is stored, and no key is ever involved. The
-service verifies; it never signs.
+  the network passphrase, an optional expiration assertion — so there is no
+  field that accepts a seed, nothing is stored, and no key is ever involved. The
+  service verifies; it never signs.
 - **Bounded input.** The body is capped by `MAX_BODY_BYTES`, and the library
-refuses entries past its own decode-depth and size limits, so a hostile entry
-cannot drive unbounded decoding.
+  refuses entries past its own decode-depth and size limits, so a hostile entry
+  cannot drive unbounded decoding.
 - **Bounded concurrency.** At most `MAX_CONCURRENT_REQUESTS` verifications run
-at once; the rest are refused with `503` rather than piling up and slowing
-every request until the timeout.
+  at once; the rest are refused with `503` rather than piling up and slowing
+  every request until the timeout.
 - **Bounded time.** Read, header, write and idle deadlines are all set, so a
-stalled or slow request cannot hold a connection open indefinitely.
+  stalled or slow request cannot hold a connection open indefinitely.
 - **No bytes in the logs.** One structured line is written per request, and it
-carries the method, the matched route, the status, the duration, the response
-size and the peer address — never the request body, the entry, the
-`Authorization` header or the token. A test asserts this.
+  carries the method, the matched route, the status, the duration, the response
+  size and the peer address — never the request body, the entry, the
+  `Authorization` header or the token. A test asserts this.
 - **Fail closed on the bind.** A non-loopback address with no `AUTH_TOKEN`
-refuses to start rather than accepting entries from anyone who can reach it. A
-warning nobody reads is how a service ends up on a public interface with no
-authentication.
+  refuses to start rather than accepting entries from anyone who can reach it. A
+  warning nobody reads is how a service ends up on a public interface with no
+  authentication.
 
 **Still the operator's concern.**
 
 - **Transport security.** The service speaks plain HTTP. Terminate TLS in front
-of it; a bearer token sent over an unencrypted hop is a bearer token someone
-else can read.
+  of it; a bearer token sent over an unencrypted hop is a bearer token someone
+  else can read.
 - **Rate limiting and abuse control.** Concurrency is bounded, but there is no
-request-rate limiter or per-client quota. Put one in front if the service is
-reachable by untrusted clients.
+  request-rate limiter or per-client quota. Put one in front if the service is
+  reachable by untrusted clients.
 - **Token issuance, rotation and storage.** `AUTH_TOKEN` is a shared secret the
-service compares in constant time; how it is minted, rotated and delivered to
-callers belongs to the deployment.
+  service compares in constant time; how it is minted, rotated and delivered to
+  callers belongs to the deployment.
 - **Launch arguments and container inspection.** An environment variable is
-visible to anything that can inspect the process or container
-(`/proc/<pid>/environ`, `docker inspect`). Treat `AUTH_TOKEN` with the care
-any process environment deserves.
+  visible to anything that can inspect the process or container
+  (`/proc/<pid>/environ`, `docker inspect`). Treat `AUTH_TOKEN` with the care
+  any process environment deserves.
 
 There is no authentication on `/healthz`, so a load balancer's check needs no
 token. It reports liveness and the version only.
