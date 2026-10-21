@@ -28,15 +28,15 @@ adapter's threat model and evidence.
 Implement `soroauth.Signer` exactly: `Address()` is stable, `Sign(ctx, payload)`
 honours cancellation, signs the supplied bytes without mutating them, and
 returns no usable partial value when signing fails. Return the provider error
-with context, but do not wrap it in a way that loses `errors.Is` or
-`errors.As`. A signer must never log seeds, private-key bytes, KMS request
-payloads, or complete authorization entries.
+with context, but do not wrap it in a way that loses `errors.Is` or `errors.As`.
+A signer must never log seeds, private-key bytes, KMS request payloads, or
+complete authorization entries.
 
 Be careful with typed nils. A non-nil interface can contain a nil pointer, so
 constructor validation must reject both a nil interface and a typed-nil client
 before the first network call. Validate required key names, projects, regions,
-and endpoints at construction time. Treat an empty provider response as an
-error rather than manufacturing a signature.
+and endpoints at construction time. Treat an empty provider response as an error
+rather than manufacturing a signature.
 
 Run the shared conformance suite from the adapter's tests:
 
@@ -52,8 +52,8 @@ func TestSignerContract(t *testing.T) {
 The suite checks address stability, context cancellation without a signing
 side-effect, an untouched preimage, failure atomicity, and determinism only
 where the signer declares it. Add provider-specific tests for malformed
-responses, context propagation, key-selection errors, signature conversion,
-and network failures. Tests must use fake clients; they must not require cloud
+responses, context propagation, key-selection errors, signature conversion, and
+network failures. Tests must use fake clients; they must not require cloud
 credentials.
 
 ## GCP KMS example
@@ -78,10 +78,10 @@ signed, err := signer.Sign(ctx, payload)
 ```
 
 The resource name identifies a key version, not a secret. IAM should grant only
-the asymmetric-sign permission required by the service. Rotate by creating a
-new key version and changing configuration; do not put private key material in
-the application or in a test fixture. The AWS and GCP adapters use the same
-contract but are not interchangeable in deployment or IAM policy.
+the asymmetric-sign permission required by the service. Rotate by creating a new
+key version and changing configuration; do not put private key material in the
+application or in a test fixture. The AWS and GCP adapters use the same contract
+but are not interchangeable in deployment or IAM policy.
 
 ## Documentation checklist
 
