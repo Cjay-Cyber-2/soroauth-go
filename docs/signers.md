@@ -5,9 +5,10 @@ and for a signature `ScVal`; the real difference between implementations is
 where the private key lives, what trust boundary the signer crosses, and what
 evidence the repository has for that path.
 
-This repository ships several signer modes. They are all built on the same
-signing API, but they do not carry the same threat model or the same level of
-evidence.
+This repository ships several signer modes. It currently includes the root
+signing API plus three adapter modules (`adapters/awskms`, `adapters/gcpkms`,
+and `adapters/walletsdk`), and they are all built on the same signing API, but
+they do not carry the same threat model or the same level of evidence.
 
 ## Short answer
 
@@ -43,8 +44,8 @@ evidence.
 ## Evidence and the production bar
 
 This repository does not claim that any signer is audited. The library as a
-whole is still `v0.1.0` and `unaudited`. The ones with real live proof in this
-repo are the ones used in the live testnet scenarios and golden vectors:
+whole remains `unaudited`. The ones with real live proof in this repo are the
+ones used in the live testnet scenarios and golden vectors:
 
 - `NewEd25519Signer`
 - `NewAccountMultiSigner`
@@ -188,7 +189,7 @@ without additional review:
 
 ## Status
 
-All shipped signers are `unaudited` as part of this library's `v0.1.0` status.
-That is not a recommendation to avoid them; it is a reminder that the difference
-between a signer type and a safe production deployment is the operating model
-around the key, not just the Go implementation.
+The library as a whole is v0.1.0 and **unaudited**. That is not a recommendation
+to avoid them; it is a reminder that the difference between a signer type and a
+safe production deployment is the operating model around the key, not just the
+Go implementation.

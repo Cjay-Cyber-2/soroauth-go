@@ -18,6 +18,32 @@ permissions:
   attestations: write
 
 jobs:
+  release-preflight:
+    name: release preflight
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+          check-latest: true
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: testdata/gen/package-lock.json
+      - name: verify the committed vectors reproduce
+        run: make vectors-check
+      - name: check release metadata and every workflow on the tagged commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: go run ./scripts/releasepreflight
+
   golden-drift:
     name: golden vectors are reproducible
     runs-on: ubuntu-latest
@@ -28,6 +54,8 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: testdata/gen/package-lock.json
+      - name: record tool versions
+        run: bash .github/scripts/record-tool-versions.sh node testdata/gen/package-lock.json
       - name: install the pinned reference sdk
         working-directory: testdata/gen
         run: npm ci
@@ -47,7 +75,7 @@ jobs:
 
   build:
     name: build binaries
-    needs: golden-drift
+    needs: [golden-drift, release-preflight]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -62,6 +90,8 @@ jobs:
         with:
           go-version-file: go.mod
           check-latest: true
+      - name: record tool versions
+        run: bash .github/scripts/record-tool-versions.sh go .
       - name: build
         id: build
         env:
@@ -138,7 +168,7 @@ jobs:
 
   image:
     name: build and publish container image
-    needs: golden-drift
+    needs: [golden-drift, release-preflight]
     runs-on: ubuntu-latest
     outputs:
       # The digest of what was actually pushed, e.g. sha256:abc…. The release
@@ -156,7 +186,7 @@ jobs:
       - name: derive image tags
         id: tags
         run: |
-          # ${GITHUB_REF_NAME} is the pushed tag, e.g. v0.1.0. The image gets
+          # ${GITHUB_REF_NAME} is the pushed tag, e.g. vX.Y.Z. The image gets
           # that exact tag plus `latest`, so a pull without a tag always gets
           # the newest release rather than needing the version pinned twice.
           echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
@@ -166,6 +196,7 @@ jobs:
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ghcr.io/soroauth/soroauth-go:${{ steps.tags.outputs.version }}
@@ -191,13 +222,117 @@ jobs:
           set -euo pipefail
           cosign sign --yes "ghcr.io/soroauth/soroauth-go@${{ steps.push.outputs.digest }}"
 
+  image-smoke:
+    name: published image runs (${{ matrix.platform }})
+    needs: image
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [linux/amd64, linux/arm64]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+        with:
+          platforms: arm64
+      - name: log in to ghcr.io
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: pull the published image
+        run: docker pull --platform "${{ matrix.platform }}" "ghcr.io/${GITHUB_REPOSITORY}:${GITHUB_REF_NAME}"
+      - name: run the documented offline commands
+        run: |
+          scripts/smoke-image.sh             --image "ghcr.io/${GITHUB_REPOSITORY}:${GITHUB_REF_NAME}"             --platform "${{ matrix.platform }}"
+
+
+  # Regenerates the Homebrew formula and the Nix flake release version from the
+  # just-built release binaries, so a human never has to remember to bump either
+  # by hand. Runs on every v* tag, before the release is created, so the
+  # formula's checksums always match the published binaries and the flake
+  # reports the newest version on main.
+  packaging:
+    name: regenerate formula and flake
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+          check-latest: true
+      - name: download build artifacts
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: artifacts
+      # Build the same release tarballs the release job ships, one per
+      # platform, and their checksums. These checksums go into the formula.
+      - name: build release tarballs and checksums
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          for target in linux-amd64 linux-arm64 darwin-amd64 darwin-arm64; do
+            mkdir -p "dist/pack-${target}"
+            cp "artifacts/soroauth-${target}/soroauth" "dist/pack-${target}/soroauth"
+            tar -czf "dist/soroauth-${target}.tar.gz" -C "dist/pack-${target}" soroauth
+            rm -rf "dist/pack-${target}"
+          done
+          if command -v sha256sum >/dev/null 2>&1; then
+            ( cd dist && sha256sum soroauth-*.tar.gz | sort -k2 > ../checksums.txt )
+          else
+            ( cd dist && shasum -a 256 soroauth-*.tar.gz | sort -k2 > ../checksums.txt )
+          fi
+          cat checksums.txt
+      # Render the formula against the real release binaries and the real
+      # release download URLs, so the checksums and base URL match what a
+      # `brew install` will fetch.
+      - name: render the formula against the release binaries
+        run: |
+          set -euo pipefail
+          scripts/gen-formula.sh \
+            --version "${GITHUB_REF_NAME}" \
+            --checksums checksums.txt \
+            --base-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}" \
+            --out soroauth.rb
+      - name: upload the rendered formula
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: soroauth-formula
+          path: soroauth.rb
+      # The flake reads its default version from this file when not fetched at
+      # a tag, so a main install reports the newest release rather than a stale
+      # value. Rewrite it from the tag.
+      - name: update the flake release version
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          printf '"%s"\n' "$version" > packaging/nix/release-version.nix
+      # Commit the flake version bump to main. The formula itself is uploaded
+      # as an artifact (the Homebrew tap lives in its own repository) and is
+      # attached to the release by the release job below.
+      - name: commit flake version to main
+        run: |
+          set -euo pipefail
+          git checkout main
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packaging/nix/release-version.nix
+          if ! git diff --cached --quiet; then
+            git commit -m "packaging: bump release-version to ${GITHUB_REF_NAME}"
+            git push origin main
+          fi
+
   # Every parity suite must pass before the npm package is published. A package
   # whose bytes nobody cross-checked is exactly the artifact issue #54 says must
   # not ship, so this job re-runs the same checks CI runs rather than trusting
   # that they ran on the branch: a tag can point at any commit.
   wasm-parity:
     name: parity suites before publish
-    needs: golden-drift
+    needs: [golden-drift, release-preflight]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -210,10 +345,13 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: wasm/ts/package-lock.json
+      - name: record tool versions
+        run: bash .github/scripts/record-tool-versions.sh go . node wasm/ts/package-lock.json
       - name: python sdk parity
         run: |
           python3 -m venv .venv-parity
           . .venv-parity/bin/activate
+          bash .github/scripts/record-tool-versions.sh python testdata/parity-python/requirements.txt
           pip install -r testdata/parity-python/requirements.txt
           python3 testdata/parity-python/parity.py
           python3 testdata/parity-python/test_parity.py
@@ -230,7 +368,7 @@ jobs:
 
   npm:
     name: publish @soroauth/wasm
-    needs: wasm-parity
+    needs: [release-preflight, wasm-parity]
     runs-on: ubuntu-latest
     environment: npm
     steps:
@@ -248,6 +386,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           cache: npm
           cache-dependency-path: wasm/ts/package-lock.json
+      - name: record tool versions
+        run: bash .github/scripts/record-tool-versions.sh go . node wasm/ts/package-lock.json
       # The version is derived from the tag, and the tag must be the commit
       # being published. Publishing from a branch, or from a commit the tag does
       # not point at, would ship bytes that do not match the release.
@@ -295,6 +435,8 @@ jobs:
         with:
           go-version-file: go.mod
           check-latest: true
+      - name: record tool versions
+        run: bash .github/scripts/record-tool-versions.sh go .
       - name: build and verify documentation site
         env:
           VERSION: ${{ github.ref_name }}
@@ -333,7 +475,7 @@ jobs:
     # Waits for the image too, so `needs.image.outputs.digest` exists: a release
     # is only created once every artifact it names — binaries, SBOMs, Sigstore
     # bundles and the image digest — has been produced, attested and signed.
-    needs: [build, image]
+    needs: [build, image, image-smoke, packaging]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -343,6 +485,8 @@ jobs:
         with:
           go-version-file: go.mod
           check-latest: true
+      - name: record tool versions
+        run: bash .github/scripts/record-tool-versions.sh go .
       # The man page is generated by the CLI itself, from the same command/flag
       # table the completion scripts come from, so the page attached to the
       # release cannot describe a flag this tag does not accept. Built for the
@@ -359,6 +503,11 @@ jobs:
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           path: artifacts
+      - name: download the rendered formula
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: soroauth-formula
+          path: dist
       - name: prepare release notes
         id: notes
         run: |
@@ -475,6 +624,8 @@ jobs:
         with:
           go-version-file: go.mod
           check-latest: true
+      - name: record tool versions
+        run: bash .github/scripts/record-tool-versions.sh go .
       # The proxy indexes a new tag lazily: the tag push that started this
       # workflow does not mean proxy.golang.org serves it yet. Poll its
       # .info endpoint rather than failing the release on a race.

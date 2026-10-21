@@ -60,11 +60,21 @@ func TestEveryExportedEntryFunctionPreservesInput(t *testing.T) {
 		"AuthorizeEntry": func(entry xdr.SorobanAuthorizationEntry) {
 			_, _ = AuthorizeEntry(context.Background(), entry, signer, validUntil, "Test SDF Network ; September 2015")
 		},
+		"CredentialNodes": func(entry xdr.SorobanAuthorizationEntry) {
+			for _, err := range CredentialNodes(entry) {
+				if err != nil {
+					break
+				}
+			}
+		},
 		"DiffEntries": func(entry xdr.SorobanAuthorizationEntry) {
 			_, _ = DiffEntries(entry, entry)
 		},
 		"Inspect": func(entry xdr.SorobanAuthorizationEntry) {
 			_, _ = Inspect(entry)
+		},
+		"MarshalCanonicalJSON": func(entry xdr.SorobanAuthorizationEntry) {
+			_, _ = MarshalCanonicalJSON(entry)
 		},
 		"NewCoordinator": func(entry xdr.SorobanAuthorizationEntry) {
 			_, _ = NewCoordinator(entry, validUntil, "Test SDF Network ; September 2015")

@@ -24,6 +24,12 @@ name: links
 #             is in.
 
 on:
+  # Unfiltered on purpose. A paths-filtered workflow produces no check row
+  # at all when it does not match, so filtering here would hide this check
+  # from exactly the pull request that needed it. Both of this check's
+  # failures on main were invisible for that reason, and the job takes
+  # seconds.
+  pull_request:
   push:
     branches: [main]
     paths:
@@ -50,6 +56,8 @@ jobs:
         with:
           go-version-file: go.mod
           check-latest: true
+      - name: record tool versions
+        run: bash .github/scripts/record-tool-versions.sh go .
 
       - name: build and verify documentation site
         run: go run ./scripts/docsite --out _site
