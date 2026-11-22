@@ -28,12 +28,12 @@ func ExampleClone_deepCopy() {
 	}
 
 	// Mutate the clone's expiration ledger or internal state independently.
-	cred, _ := clone.Credentials.Address()
+	cred, _ := clone.Credentials.GetAddress()
 	cred.Expiration = 999999
 
 	// Verify original remains unchanged.
-	origCred, _ := entry.Credentials.Address()
-	cloneCred, _ := clone.Credentials.Address()
+	origCred, _ := entry.Credentials.GetAddress()
+	cloneCred, _ := clone.Credentials.GetAddress()
 	origExp := origCred.Expiration
 	cloneExp := cloneCred.Expiration
 
@@ -53,7 +53,7 @@ func ExampleEqual_entries() {
 	fmt.Println("identical:", soroauth.Equal(a, b))
 
 	// Mutate b so it differs in expiration / signature fields.
-	credB, _ := b.Credentials.Address()
+	credB, _ := b.Credentials.GetAddress()
 	credB.Expiration = 12345
 
 	// Entries differing in signature or metadata are not Equal.
