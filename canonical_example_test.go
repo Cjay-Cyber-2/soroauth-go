@@ -84,7 +84,9 @@ func ExampleMarshalCanonicalJSON() {
 }
 
 const (
-	canonicalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+	canonicalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+	canonicalExampleContract = "CA3D7GJXKTS6NGIHBEVDRKDT36GDJQS7FDEAMWPGVMUNWRIVCADQWYEX"
+	canonicalExampleWallet   = "GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZBWSHODAETDBI5ZWCHQWRQ"
 )
 
 // ExampleCanonicalize demonstrates that two differently constructed entries
