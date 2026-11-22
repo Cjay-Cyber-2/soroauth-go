@@ -7,19 +7,20 @@ import (
 )
 
 // ExampleNonceTracker demonstrates recording a nonce and refusing its reuse.
-// Note that the nonce tracker is per-process in-memory unless backed by durable storage.
 func ExampleNonceTracker() {
+	// Note: NonceTracker is per-process unless backed by durable storage.
 	tracker := soroauth.NewInMemoryNonceTracker()
-	address := "GC333333333333333333333333333333333333333333333333333333"
-	var nonce uint64 = 42
 
-	firstUse := tracker.CheckAndRecord(address, nonce)
-	fmt.Println("first use accepted:", firstUse)
+	address := "GCEZWKCA5VJHQN7WJWBR7LHXUXVPUN2KY7GBK4AEI5YXR5D2K67X4JOK"
+	var nonce int64 = 100
 
-	reuse := tracker.CheckAndRecord(address, nonce)
-	fmt.Println("reuse refused:", reuse)
+	firstUse := tracker.Record(address, nonce)
+	fmt.Println("first use allowed:", firstUse)
+
+	secondUse := tracker.Record(address, nonce)
+	fmt.Println("second use allowed (refused):", secondUse)
 
 	// Output:
-	// first use accepted: true
-	// reuse refused: false
+	// first use allowed: true
+	// second use allowed (refused): false
 }

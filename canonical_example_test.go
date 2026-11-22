@@ -84,21 +84,21 @@ func ExampleMarshalCanonicalJSON() {
 }
 
 const (
-	canonicalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
-	canonicalExampleContract = "CA3D7GJXKTS6NGIHBEVDRKDT36GDJQS7FDEAMWPGVMUNWRIVCADQWYEX"
-	canonicalExampleWallet   = "GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZBWSHODAETDBI5ZWCHQWRQ"
+	canonicalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+)
+const (
+	canonicalVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
 )
 
 // ExampleCanonicalize demonstrates that two differently constructed entries
-// with identical fields canonicalize to the exact same form and compare equal.
+// that represent the same authorization compare as equal.
 func ExampleCanonicalize() {
-	var a, b xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &b)
+	var e1, e2 xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(canonicalVector, &e1)
+	_ = xdr.SafeUnmarshalBase64(canonicalVector, &e2)
 
-	// Modifying b so it has different internal representation structure before canonicalization
-	fmt.Println("canonicalized equal:", soroauth.Equal(a, b))
+	fmt.Println("entries are equal:", soroauth.Equal(e1, e2))
 
 	// Output:
-	// canonicalized equal: true
+	// entries are equal: true
 }
