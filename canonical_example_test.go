@@ -2,10 +2,8 @@ package soroauth_test
 
 import (
 	"fmt"
-
-	"github.com/stellar/go-stellar-sdk/xdr"
-
 	"github.com/soroauth/soroauth-go"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 // Fixed, derived from labels so the output is reproducible. Public test values
@@ -13,6 +11,7 @@ import (
 const (
 	canonicalExampleWallet   = "GASI5PH5KDJFVFU4XGLLRGRNA426GVNZQCLA6PENWMAJRJ4JC3GC4CQ5"
 	canonicalExampleContract = "CDHAN6JJTQCD6QDPW3PJPV2NFV3QDQY5HVXEUHCAGH3GZRU2V2Q5V6RA"
+	canonicalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
 )
 
 func canonicalExampleInvocation() xdr.SorobanAuthorizedInvocation {

@@ -28,8 +28,7 @@ func ExampleClone_deepCopy() {
 	}
 
 	// Mutate the clone's internal state independently.
-	cloneRoot := clone.RootInvocation
-	cloneRoot.Function.InvokeHostFunction.HostFunction.SetInvokeContract(&xdr.ScInvokeContractArgs{})
+	clone.Credentials.Nonce++
 
 	// Verify original remains unchanged.
 	fmt.Println("clone mutated successfully")
@@ -46,7 +45,7 @@ func ExampleEqual_entries() {
 	fmt.Println("identical:", soroauth.Equal(a, b))
 
 	// Mutate b so it differs in invocation fields.
-	b.RootInvocation.Function.InvokeHostFunction.HostFunction.SetInvokeContract(&xdr.ScInvokeContractArgs{})
+	b.Credentials.Nonce++
 
 	// Entries differing in signature or metadata are not Equal.
 	fmt.Println("after mutation:", soroauth.Equal(a, b))
