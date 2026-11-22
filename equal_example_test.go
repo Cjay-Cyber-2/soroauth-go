@@ -6,6 +6,20 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
+// ExampleEqual demonstrates comparing entries and checking deep copies with Clone.
+func ExampleEqual() {
+	e1 := &soroauth.Entry{Account: "GCEZWKCA5VJHQN7WJWBR7LHXUXVPUN2KY7GBK4AEI5YXR5D2K67X4JOK"}
+	e2 := soroauth.Clone(e1)
+
+	fmt.Println("original equals clone:", soroauth.Equal(e1, e2))
+
+	e2.Account = "GD7V5WK5JQU5GCZ7WJWBR7LHXUXVPUN2KY7GBK4AEI5YXR5D2K67XOG"
+	fmt.Println("original unchanged after clone mutation:", e1.Account != e2.Account)
+
+	// Output:
+	// original equals clone: true
+	// original unchanged after clone mutation: true
+}
 
 const (
 	// exampleGoldenVectorBase64 is a committed sample encoded SorobanAuthorizationEntry used for examples.
@@ -99,18 +113,4 @@ func ExampleEqual_mismatch() {
 
 	// Output:
 	// entries are equal: false
-}
-// ExampleEqual demonstrates comparing entries and checking deep copies with Clone.
-func ExampleEqual() {
-	e1 := &soroauth.Entry{Account: "GCEZWKCA5VJHQN7WJWBR7LHXUXVPUN2KY7GBK4AEI5YXR5D2K67X4JOK"}
-	e2 := soroauth.Clone(e1)
-
-	fmt.Println("original equals clone:", soroauth.Equal(e1, e2))
-
-	e2.Account = "GD7V5WK5JQU5GCZ7WJWBR7LHXUXVPUN2KY7GBK4AEI5YXR5D2K67XOG"
-	fmt.Println("original unchanged after clone mutation:", e1.Account != e2.Account)
-
-	// Output:
-	// original equals clone: true
-	// original unchanged after clone mutation: true
 }
