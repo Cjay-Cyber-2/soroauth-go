@@ -6,6 +6,7 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
+
 // ExampleEqual demonstrates comparing entries and checking deep copies with Clone.
 func ExampleEqual() {
 	e1 := &soroauth.Entry{Account: "GCEZWKCA5VJHQN7WJWBR7LHXUXVPUN2KY7GBK4AEI5YXR5D2K67X4JOK"}
@@ -70,7 +71,6 @@ func ExampleEqual_entries() {
 	// identical: true
 	// after mutation: false
 }
-
 const (
 	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
 )
@@ -87,12 +87,10 @@ func ExampleClone() {
 		return
 	}
 
-	// Mutating clone's nonce via V2 credentials if present
 	if clone.Credentials.AddressV2 != nil {
 		clone.Credentials.AddressV2.Nonce = 999
 	}
 
-	// Original remains unaffected
 	fmt.Println("original equals clone after mutation:", soroauth.Equal(original, clone))
 
 	// Output:
