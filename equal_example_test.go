@@ -6,6 +6,7 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
+
 const (
 	// exampleGoldenVectorBase64 is a committed sample encoded SorobanAuthorizationEntry used for examples.
 	exampleGoldenVectorBase64 = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
@@ -54,4 +55,47 @@ func ExampleEqual_entries() {
 	// Output:
 	// identical: true
 	// after mutation: false
+}
+const (
+	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+)
+
+// ExampleClone demonstrates the deep-copy guarantee of Clone, showing that
+// mutating the returned entry does not affect the original input.
+func ExampleClone() {
+	var original xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &original)
+
+	clone, err := soroauth.Clone(original)
+	if err != nil {
+		fmt.Println("clone error:", err)
+		return
+	}
+
+	// Mutating clone's nonce via V2 credentials if present
+	if clone.Credentials.AddressV2 != nil {
+		clone.Credentials.AddressV2.Nonce = 999
+	}
+
+	// Original remains unaffected
+	fmt.Println("original equals clone after mutation:", soroauth.Equal(original, clone))
+
+	// Output:
+	// original equals clone after mutation: false
+}
+
+// ExampleEqual_mismatch shows Equal returning false for entries differing in fields.
+func ExampleEqual_mismatch() {
+	var a, b xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &a)
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &b)
+
+	if b.Credentials.AddressV2 != nil {
+		b.Credentials.AddressV2.Nonce += 1
+	}
+
+	fmt.Println("entries are equal:", soroauth.Equal(a, b))
+
+	// Output:
+	// entries are equal: false
 }
