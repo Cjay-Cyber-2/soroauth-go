@@ -28,7 +28,7 @@ func ExampleClone_deepCopy() {
 	}
 
 	// Mutate the clone's internal state independently.
-	clone.Credentials.MustAddress().Nonce++
+	clone.Credentials.Address.Nonce++
 
 	// Verify original remains unchanged.
 	fmt.Println("clone mutated successfully")
@@ -45,7 +45,7 @@ func ExampleEqual_entries() {
 	fmt.Println("identical:", soroauth.Equal(a, b))
 
 	// Mutate b so it differs in invocation fields.
-	b.Credentials.MustAddress().Nonce++
+	b.Credentials.Address.Nonce++
 
 	// Entries differing in signature or metadata are not Equal.
 	fmt.Println("after mutation:", soroauth.Equal(a, b))
