@@ -8,11 +8,11 @@ this project adheres to
 
 ## [Unreleased]
 
+### Added
+
 - docs: Go doc examples for canonical.go (#649)
 - docs: Go doc examples for Equal and Clone (#650)
 - docs: Go doc examples for the nonce tracker (#651)
-
-### Added
 
 - Add a per-caller token-bucket rate limit to the verification service, checked
   before the body is read and before a concurrency slot is taken. A refusal is
