@@ -74,6 +74,7 @@ func ExampleMarshalCanonicalJSON() {
 	// Output:
 	// true
 }
+
 const (
 	canonicalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
 )
@@ -87,4 +88,18 @@ func ExampleCanonical_equivalence() {
 	fmt.Println("equal canonical:", soroauth.Equal(a, b))
 	// Output:
 	// equal canonical: true
+}
+// ExampleCanonicalize demonstrates that two differently constructed entries
+// with identical fields canonicalize to the exact same form.
+func ExampleCanonicalize() {
+	e1 := &soroauth.Entry{Account: "GCEZWKCA5VJHQN7WJWBR7LHXUXVPUN2KY7GBK4AEI5YXR5D2K67X4JOK"}
+	e2 := &soroauth.Entry{Account: "GCEZWKCA5VJHQN7WJWBR7LHXUXVPUN2KY7GBK4AEI5YXR5D2K67X4JOK"}
+
+	c1 := soroauth.Canonicalize(e1)
+	c2 := soroauth.Canonicalize(e2)
+
+	fmt.Println("canonicalized equal:", soroauth.Equal(c1, c2))
+
+	// Output:
+	// canonicalized equal: true
 }
