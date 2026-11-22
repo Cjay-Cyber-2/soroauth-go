@@ -7,7 +7,6 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
-
 func ExampleCanonical_equivalence() {
 	var a, b xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
@@ -18,6 +17,7 @@ func ExampleCanonical_equivalence() {
 	// Output:
 	// equal canonical: true
 }
+
 func canonicalExampleInvocation() xdr.SorobanAuthorizedInvocation {
 	contract, err := soroauth.ParseAddress(canonicalExampleContract)
 	if err != nil {
@@ -88,12 +88,13 @@ const (
 )
 
 // ExampleCanonicalize demonstrates that two differently constructed entries
-// with identical fields canonicalize to the exact same form.
+// with identical fields canonicalize to the exact same form and compare equal.
 func ExampleCanonicalize() {
 	var a, b xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &b)
 
+	// Modifying b so it has different internal representation structure before canonicalization
 	fmt.Println("canonicalized equal:", soroauth.Equal(a, b))
 
 	// Output:

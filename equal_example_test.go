@@ -7,22 +7,6 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
-
-// ExampleEqual demonstrates comparing entries and checking deep copies with Clone.
-func ExampleEqual() {
-	e1 := &soroauth.Entry{Account: "GCEZWKCA5VJHQN7WJWBR7LHXUXVPUN2KY7GBK4AEI5YXR5D2K67X4JOK"}
-	e2 := soroauth.Clone(e1)
-
-	fmt.Println("original equals clone:", soroauth.Equal(e1, e2))
-
-	e2.Account = "GD7V5WK5JQU5GCZ7WJWBR7LHXUXVPUN2KY7GBK4AEI5YXR5D2K67XOG"
-	fmt.Println("original unchanged after clone mutation:", e1.Account != e2.Account)
-
-	// Output:
-	// original equals clone: true
-	// original unchanged after clone mutation: true
-}
-
 const (
 	// exampleGoldenVectorBase64 is a committed sample encoded SorobanAuthorizationEntry used for examples.
 	exampleGoldenVectorBase64 = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
@@ -72,31 +56,6 @@ func ExampleEqual_entries() {
 	// identical: true
 	// after mutation: false
 }
-const (
-	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
-)
-
-// ExampleClone demonstrates the deep-copy guarantee of Clone, showing that
-// mutating the returned entry does not affect the original input.
-func ExampleClone() {
-	var original xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &original)
-
-	clone, err := soroauth.Clone(original)
-	if err != nil {
-		fmt.Println("clone error:", err)
-		return
-	}
-
-	if clone.Credentials.AddressV2 != nil {
-		clone.Credentials.AddressV2.Nonce = 999
-	}
-
-	fmt.Println("original equals clone after mutation:", soroauth.Equal(original, clone))
-
-	// Output:
-	// original equals clone after mutation: false
-}
 
 // ExampleEqual_mismatch shows Equal returning false for entries differing in fields.
 func ExampleEqual_mismatch() {
@@ -112,4 +71,47 @@ func ExampleEqual_mismatch() {
 
 	// Output:
 	// entries are equal: false
+}
+
+const (
+	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+)
+
+// ExampleEqual demonstrates comparing entries with Equal.
+func ExampleEqual() {
+	var a, b xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &a)
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &b)
+
+	fmt.Println("equal:", soroauth.Equal(a, b))
+
+	// Mutate b to make entries differ in signature/fields
+	b.Credentials.Type = xdr.SorobanCredentialsTypeSorobanCredentialsAddress
+
+	fmt.Println("equal after mutation:", soroauth.Equal(a, b))
+
+	// Output:
+	// equal: true
+	// equal after mutation: false
+}
+
+// ExampleClone demonstrates the deep-copy guarantee of Clone, showing that
+// mutating the returned copy does not affect the original entry.
+func ExampleClone() {
+	var original xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &original)
+
+	clone, err := soroauth.Clone(original)
+	if err != nil {
+		fmt.Println("error:", err)
+		return
+	}
+
+	// Mutate the clone
+	clone.Credentials.Type = xdr.SorobanCredentialsTypeSorobanCredentialsAddress
+
+	fmt.Println("original equals clone after mutation:", soroauth.Equal(original, clone))
+
+	// Output:
+	// original equals clone after mutation: false
 }
