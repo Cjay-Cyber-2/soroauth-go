@@ -6,10 +6,7 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
-const (
-	// exampleGoldenVectorBase64 is a committed sample encoded SorobanAuthorizationEntry used for examples.
-	exampleGoldenVectorBase64 = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
-)
+
 
 // ExampleClone_deepCopy demonstrates the deep-copy guarantee of Clone, showing that
 // mutating the returned copy does not affect the original entry.
@@ -77,7 +74,8 @@ func ExampleEqual_mismatch() {
 }
 
 const (
-	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+	equalExampleVector        = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+	exampleGoldenVectorBase64 = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
 )
 
 // ExampleEqual demonstrates comparing entries with Equal.
