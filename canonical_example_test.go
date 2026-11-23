@@ -8,7 +8,6 @@ import (
 )
 
 
-
 func ExampleCanonical_equivalence() {
 	var a, b xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
@@ -82,16 +81,8 @@ func ExampleMarshalCanonicalJSON() {
 	// Output:
 	// equal canonical: true
 }
-
-// canonicalExampleContract and canonicalExampleWallet are defined below with other constants.
-const (
-	canonicalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
-	canonicalExampleContract = "CDLZFC3SJQLJBZM62JUIOA4W344PZZX6O2C5Z2AFAK5Y2X2O3N5J5Q5Q"
-	canonicalExampleWallet   = "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2H2"
-)
-
 // ExampleCanonical demonstrates that two differently constructed entries
-// that represent the same authorization compare as equal.
+// that represent the same authorization compare as equal after canonicalisation.
 func ExampleCanonical() {
 	var e1, e2 xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
@@ -102,3 +93,7 @@ func ExampleCanonical() {
 	// Output:
 	// entries are equal: true
 }
+
+const (
+	canonicalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+)
