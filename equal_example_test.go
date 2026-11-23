@@ -8,6 +8,8 @@ import (
 )
 
 
+
+
 func ExampleEqual_clone() {
 	var orig xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)

@@ -11,9 +11,6 @@ import (
 // ExampleMarshalCanonicalJSON shows how two differently-built but semantically
 // equivalent entries (or an entry round-tripped through MarshalCanonicalJSON and
 // UnmarshalCanonicalJSON) canonicalise identically.
-// ExampleMarshalCanonicalJSON shows how two differently-built but semantically
-// equivalent entries (or an entry round-tripped through MarshalCanonicalJSON and
-// UnmarshalCanonicalJSON) canonicalise identically.
 func ExampleMarshalCanonicalJSON() {
 	var e1, e2 xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
