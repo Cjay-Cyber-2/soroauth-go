@@ -7,8 +7,6 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
-
-
 // canonicalExampleContract and canonicalExampleWallet are defined below with other constants.
 func canonicalExampleInvocation() xdr.SorobanAuthorizedInvocation {
 	contract, err := soroauth.ParseAddress(canonicalExampleContract)
@@ -51,6 +49,7 @@ func ExampleCanonicalForm() {
 	fmt.Println("canonical")
 	// Output: canonical
 }
+
 const (
 	canonicalExampleContract = "example-contract"
 	canonicalExampleWallet   = "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
