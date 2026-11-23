@@ -7,7 +7,25 @@ import (
 )
 
 
+
+
 func ExampleEqual_and_Clone() {
+	var orig xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
+	cloned, _ := soroauth.Clone(orig)
+	fmt.Println(soroauth.Equal(orig, cloned))
+
+	// Equal returns false for entries differing in signature or state
+	var different xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &different)
+	different.Credentials.Type = xdr.SorobanCredentialsTypeSorobanCredentialsAddress
+	fmt.Println(soroauth.Equal(orig, different))
+	// Output:
+	// true
+	// false
+}
+
+func ExampleEqual_clone() {
 	var orig xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
 	cloned, _ := soroauth.Clone(orig)
@@ -87,21 +105,7 @@ func ExampleEqual_mismatch() {
 	// entries are equal: false
 }
 
-func ExampleEqual_clone() {
-	var orig xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
-	cloned, _ := soroauth.Clone(orig)
-	fmt.Println(soroauth.Equal(orig, cloned))
 
-	// Equal returns false for entries differing in signature or state
-	var different xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &different)
-	different.Credentials.Type = xdr.SorobanCredentialsTypeSorobanCredentialsAddress
-	fmt.Println(soroauth.Equal(orig, different))
-	// Output:
-	// true
-	// false
-}
 
 const (
 	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="

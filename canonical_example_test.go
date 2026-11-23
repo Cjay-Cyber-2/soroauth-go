@@ -31,16 +31,7 @@ func ExampleCanonicalize() {
 	// Output:
 	// entries are equal: true
 }
-func ExampleCanonical() {
-	var a, b xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &b)
 
-	// Canonical form helpers normalize and equate authorization entries.
-	fmt.Println("equal canonical:", soroauth.Equal(a, b))
-	// Output:
-	// equal canonical: true
-}
 
 // canonicalExampleContract and canonicalExampleWallet are defined below with other constants.
 func canonicalExampleInvocation() xdr.SorobanAuthorizedInvocation {
