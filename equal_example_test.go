@@ -7,7 +7,8 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
-func ExampleEqual_and_Clone() {
+
+func ExampleEqual_clone() {
 	var orig xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
 	cloned, _ := soroauth.Clone(orig)
@@ -22,8 +23,7 @@ func ExampleEqual_and_Clone() {
 	// true
 	// false
 }
-
-func ExampleEqual_clone() {
+func ExampleEqual_and_Clone() {
 	var orig xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
 	cloned, _ := soroauth.Clone(orig)
