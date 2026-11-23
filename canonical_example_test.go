@@ -7,6 +7,21 @@ import (
 )
 
 
+
+const canonicalExampleContract = "example-contract"
+
+func ExampleCanonical() {
+	var a, b xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &b)
+
+	c1 := soroauth.Canonical(a)
+	c2 := soroauth.Canonical(b)
+
+	fmt.Println(soroauth.Equal(c1, c2))
+	// Output:
+	// true
+}
 func ExampleCanonical_equivalence() {
 	var a, b xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
@@ -90,17 +105,4 @@ func ExampleCanonicalForm() {
 	fmt.Println("canonical")
 	// Output: canonical
 }
-const canonicalExampleContract = "example-contract"
-
-func ExampleCanonical() {
-	var a, b xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &b)
-
-	c1 := soroauth.Canonical(a)
-	c2 := soroauth.Canonical(b)
-
-	fmt.Println(soroauth.Equal(c1, c2))
-	// Output:
-	// true
-}
+// #649: docs: Go doc examples for canonical.go

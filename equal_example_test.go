@@ -7,6 +7,17 @@ import (
 )
 
 
+
+const equalExampleContract = "example-contract"
+
+func ExampleEqual_and_Clone() {
+	orig := soroauth.NewEntry(equalExampleContract, 42)
+	clone := orig.Clone()
+
+	fmt.Println(orig.Equal(clone))
+	// Output:
+	// true
+}
 func ExampleEqual_clone() {
 	var orig xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
@@ -94,13 +105,4 @@ func ExampleClone() {
 	fmt.Println("clone")
 	// Output: clone
 }
-const equalExampleContract = "example-contract"
-
-func ExampleEqual_and_Clone() {
-	orig := soroauth.NewEntry(equalExampleContract, 42)
-	clone := orig.Clone()
-
-	fmt.Println(orig.Equal(clone))
-	// Output:
-	// true
-}
+// #650: docs: Go doc examples for Equal and Clone
