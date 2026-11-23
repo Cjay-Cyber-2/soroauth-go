@@ -2,7 +2,6 @@ package soroauth_test
 
 import (
 	"fmt"
-
 	"github.com/soroauth/soroauth-go"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
@@ -114,4 +113,19 @@ func ExampleClone() {
 
 	// Output:
 	// original equals clone after mutation: false
+}
+func ExampleEqual_and_Clone() {
+	var orig xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
+	cloned, _ := soroauth.Clone(orig)
+	fmt.Println(soroauth.Equal(orig, cloned))
+
+	// Equal returns false for entries differing in signature or state
+	var different xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &different)
+	different.Credentials.Type = xdr.SorobanCredentialsTypeSorobanCredentialsAddress
+	fmt.Println(soroauth.Equal(orig, different))
+	// Output:
+	// true
+	// false
 }
