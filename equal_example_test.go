@@ -6,9 +6,6 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
-
-
-
 // ExampleEqual_entries shows Equal returning true for identical entries and false
 // when they differ in fields.
 func ExampleEqual_entries() {
@@ -28,6 +25,7 @@ func ExampleEqual_entries() {
 	// identical: true
 	// after mutation: false
 }
+
 // ExampleClone_deepCopy demonstrates the deep-copy guarantee of Clone, showing that
 // mutating the returned copy does not affect the original entry.
 func ExampleClone_deepCopy() {
@@ -57,8 +55,6 @@ func ExampleClone_deepCopy() {
 	// clone mutated successfully
 }
 
-
-
 // ExampleEqual_mismatch shows Equal returning false for entries differing in fields.
 func ExampleEqual_mismatch() {
 	var a, b xdr.SorobanAuthorizationEntry
@@ -75,12 +71,28 @@ func ExampleEqual_mismatch() {
 	// entries are equal: false
 }
 
+func ExampleEqual_and_Clone() {
+	var orig xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
+	cloned, _ := soroauth.Clone(orig)
+	fmt.Println(soroauth.Equal(orig, cloned))
+
+	// Equal returns false for entries differing in signature or state
+	var different xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &different)
+	different.Credentials.Type = xdr.SorobanCredentialsTypeSorobanCredentialsAddress
+	fmt.Println(soroauth.Equal(orig, different))
+	// Output:
+	// true
+	// false
+}
+
 const (
-	equalExampleVector        = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
-	exampleGoldenVectorBase64 = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
 )
 
-// ExampleEqual demonstrates comparing entries with Equal.
+// ExampleEqual demonstrates comparing entries with Equal, returning true for
+// identical entries and false when fields or signatures differ.
 func ExampleEqual() {
 	var a, b xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &a)
@@ -88,7 +100,6 @@ func ExampleEqual() {
 
 	fmt.Println("equal:", soroauth.Equal(a, b))
 
-	// Mutate b to make entries differ in signature/fields
 	b.Credentials.Type = xdr.SorobanCredentialsTypeSorobanCredentialsAddress
 
 	fmt.Println("equal after mutation:", soroauth.Equal(a, b))
@@ -110,26 +121,10 @@ func ExampleClone() {
 		return
 	}
 
-	// Mutate the clone
 	clone.Credentials.Type = xdr.SorobanCredentialsTypeSorobanCredentialsAddress
 
 	fmt.Println("original equals clone after mutation:", soroauth.Equal(original, clone))
 
 	// Output:
 	// original equals clone after mutation: false
-}
-func ExampleEqual_and_Clone() {
-	var orig xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
-	cloned, _ := soroauth.Clone(orig)
-	fmt.Println(soroauth.Equal(orig, cloned))
-
-	// Equal returns false for entries differing in signature or state
-	var different xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &different)
-	different.Credentials.Type = xdr.SorobanCredentialsTypeSorobanCredentialsAddress
-	fmt.Println(soroauth.Equal(orig, different))
-	// Output:
-	// true
-	// false
 }
