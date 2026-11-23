@@ -1,8 +1,8 @@
 package soroauth_test
 
 import (
-	"context"
 	"fmt"
+
 	"github.com/soroauth/soroauth-go"
 )
 
@@ -10,21 +10,21 @@ import (
 const (
 	nonceTrackerExampleKey = "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
 )
-// ExampleNonceTracker demonstrates recording a nonce and refusing a reuse.
+// ExampleNonceTracker demonstrates recording a nonce and refusing its reuse.
+// Note that the NonceTracker is process-local unless backed by durable storage.
 func ExampleNonceTracker() {
-	ctx := context.Background()
 	tracker := soroauth.NewInMemoryNonceTracker()
 
 	address := "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2H2"
-	var nonce int64 = 100
+	var nonce uint64 = 100
 
-	err := tracker.Reserve(ctx, address, nonce)
-	fmt.Println("first reservation err:", err == nil)
+	firstCheck := tracker.CheckAndRecord(address, nonce)
+	fmt.Println("first use allowed:", firstCheck == nil)
 
-	err = tracker.Reserve(ctx, address, nonce)
-	fmt.Println("second reservation err:", err != nil)
+	secondCheck := tracker.CheckAndRecord(address, nonce)
+	fmt.Println("second use allowed:", secondCheck == nil)
 
 	// Output:
-	// first reservation err: true
-	// second reservation err: true
+	// first use allowed: true
+	// second use allowed: false
 }
