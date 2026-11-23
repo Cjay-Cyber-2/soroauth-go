@@ -45,8 +45,8 @@ func ExampleClone_deepCopy() {
 	}
 
 	// Mutate the clone's internal state independently.
-	if clone.Credentials.Address != nil {
-		clone.Credentials.Address.Nonce++
+	if clone.Credentials.AddressV2 != nil {
+		clone.Credentials.AddressV2.Nonce++
 	}
 
 	// Verify original remains unchanged.
