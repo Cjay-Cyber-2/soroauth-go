@@ -7,8 +7,6 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
-
-
 func ExampleEqual_and_Clone() {
 	orig := soroauth.NewEntry(equalExampleContract, 42)
 	clone := orig.Clone()
