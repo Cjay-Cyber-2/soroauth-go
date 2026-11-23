@@ -2,6 +2,7 @@ package soroauth_test
 
 import (
 	"fmt"
+
 	"github.com/soroauth/soroauth-go"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
@@ -83,9 +84,10 @@ func ExampleMarshalCanonicalJSON() {
 }
 
 const (
-	canonicalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+	canonicalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+	canonicalExampleContract = "CDLZFC3SJQLJBZM62JUIOA4W344PZZX6O2C5Z2AFAK5Y2X2O3N5J5Q5Q"
+	canonicalExampleWallet   = "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2H2H2"
 )
-
 const (
 	canonicalVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
 )
@@ -101,20 +103,4 @@ func ExampleCanonicalize() {
 
 	// Output:
 	// entries are equal: true
-}
-
-const (
-	exampleCanonicalAddress = "GABRXYZ27X7A62OGSZJ3V3Z3Y337Y323Z323Z323Z323Z323Z323"
-)
-
-func ExampleCanonical() {
-	// Two differently-built entries that represent the same state
-	// canonicalize identically.
-	var e1, e2 xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(canonicalVector, &e1)
-	_ = xdr.SafeUnmarshalBase64(canonicalVector, &e2)
-
-	fmt.Println(soroauth.Equal(e1, e2))
-	// Output:
-	// true
 }
