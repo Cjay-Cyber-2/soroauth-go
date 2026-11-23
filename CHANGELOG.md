@@ -11,6 +11,9 @@ this project adheres to
 - docs: Go doc examples for canonical.go (#649)
 - docs: Go doc examples for Equal and Clone (#650)
 - docs: Go doc examples for the nonce tracker (#651)
+- Fix PR #702: update noncetracker_example_test.go (#651)
+- Fix PR #702: update equal_example_test.go (#650)
+- Fix PR #702: update canonical_example_test.go (#649)
 
 ### Added
 
