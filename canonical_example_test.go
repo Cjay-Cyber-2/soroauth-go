@@ -7,7 +7,6 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
-
 // ExampleMarshalCanonicalJSON shows how two differently-built but semantically
 // equivalent entries (or an entry round-tripped through MarshalCanonicalJSON and
 // UnmarshalCanonicalJSON) canonicalise identically.
@@ -21,6 +20,7 @@ func ExampleMarshalCanonicalJSON() {
 	// Output:
 	// equal canonical: true
 }
+
 func ExampleCanonical_equivalence() {
 	var a, b xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
@@ -35,6 +35,19 @@ func ExampleCanonical_equivalence() {
 // ExampleCanonicalize demonstrates that two differently constructed entries
 // that represent the same authorization compare as equal.
 func ExampleCanonicalize() {
+	var e1, e2 xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e2)
+
+	fmt.Println("entries are equal:", soroauth.Equal(e1, e2))
+
+	// Output:
+	// entries are equal: true
+}
+
+// ExampleCanonical demonstrates that two differently constructed entries
+// that represent the same authorization compare as equal after canonicalisation.
+func ExampleCanonical() {
 	var e1, e2 xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e2)
@@ -80,7 +93,6 @@ func canonicalExampleV2Entry() xdr.SorobanAuthorizationEntry {
 		RootInvocation: canonicalExampleInvocation(),
 	}
 }
-
 
 const (
 	canonicalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
