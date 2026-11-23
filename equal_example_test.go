@@ -2,17 +2,10 @@ package soroauth_test
 
 import (
 	"fmt"
+
 	"github.com/soroauth/soroauth-go"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
-
-
-
-
-
-
-
-
 
 
 func ExampleEqual_and_Clone() {
@@ -46,6 +39,7 @@ func ExampleEqual_clone() {
 	// true
 	// false
 }
+
 // ExampleEqual_entries shows Equal returning true for identical entries and false
 // when they differ in fields.
 func ExampleEqual_entries() {
@@ -110,12 +104,7 @@ func ExampleEqual_mismatch() {
 	// Output:
 	// entries are equal: false
 }
-const (
-	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
-)
-
-// ExampleEqual demonstrates comparing entries with Equal, returning true for
-// identical entries and false when fields or signatures differ.
+// ExampleEqual demonstrates comparing entries with Equal.
 func ExampleEqual() {
 	var a, b xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &a)
@@ -132,8 +121,7 @@ func ExampleEqual() {
 	// equal after mutation: false
 }
 
-// ExampleClone demonstrates the deep-copy guarantee of Clone, showing that
-// mutating the returned copy does not affect the original entry.
+// ExampleClone demonstrates the deep-copy guarantee of Clone.
 func ExampleClone() {
 	var original xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &original)
@@ -151,3 +139,7 @@ func ExampleClone() {
 	// Output:
 	// original equals clone after mutation: false
 }
+
+const (
+	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+)
