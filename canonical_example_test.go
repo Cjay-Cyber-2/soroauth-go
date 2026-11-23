@@ -84,6 +84,12 @@ func ExampleMarshalCanonicalJSON() {
 	// equal canonical: true
 }
 
+const (
+	canonicalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+	canonicalExampleContract = "CA3D5KRYM6CB7OWQ6TWYRR3Z4T7GNZLKERYNZFEN5EGAOZO65VZEK6ZM"
+	canonicalExampleWallet   = "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2H2"
+)
+
 // ExampleCanonical demonstrates that two differently constructed entries
 // that represent the same authorization compare as equal after canonicalisation.
 func ExampleCanonical() {
@@ -96,9 +102,3 @@ func ExampleCanonical() {
 	// Output:
 	// entries are equal: true
 }
-
-const (
-	canonicalExampleVector  = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
-	canonicalExampleContract = "CA3D5KRYM6CB7OWQ6TWYRR3Z4T7GNZLKERYNZFEN5EGAOZO65VZEK6ZM"
-	canonicalExampleWallet   = "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2H2"
-)

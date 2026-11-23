@@ -104,6 +104,10 @@ func ExampleEqual_mismatch() {
 	// entries are equal: false
 }
 
+const (
+	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+)
+
 // ExampleEqual demonstrates comparing entries with Equal.
 func ExampleEqual() {
 	var a, b xdr.SorobanAuthorizationEntry
@@ -139,7 +143,3 @@ func ExampleClone() {
 	// Output:
 	// original equals clone after mutation: false
 }
-
-const (
-	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
-)
