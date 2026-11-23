@@ -2,11 +2,9 @@ package soroauth_test
 
 import (
 	"fmt"
+
 	"github.com/soroauth/soroauth-go"
 )
-
-
-// #651: docs: Go doc examples for the nonce tracker
 
 
 const (

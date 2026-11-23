@@ -2,26 +2,12 @@ package soroauth_test
 
 import (
 	"fmt"
+
 	"github.com/soroauth/soroauth-go"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 
-
-const canonicalExampleContract = "example-contract"
-
-func ExampleCanonical() {
-	var a, b xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &b)
-
-	c1 := soroauth.Canonical(a)
-	c2 := soroauth.Canonical(b)
-
-	fmt.Println(soroauth.Equal(c1, c2))
-	// Output:
-	// true
-}
 func ExampleCanonical_equivalence() {
 	var a, b xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
@@ -95,10 +81,6 @@ func ExampleCanonicalize() {
 	// entries are equal: true
 }
 
-const (
-	canonicalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
-)
-
 func ExampleCanonicalForm() {
 	// Two differently-built entries that represent the same authorization.
 	// Canonicalisation normalises their internal representation for reliable comparison.
@@ -106,3 +88,21 @@ func ExampleCanonicalForm() {
 	// Output: canonical
 }
 // #649: docs: Go doc examples for canonical.go
+const (
+	canonicalExampleContract = "example-contract"
+	canonicalExampleWallet   = "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
+	canonicalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+)
+
+func ExampleCanonical() {
+	var a, b xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &b)
+
+	c1 := soroauth.Canonical(a)
+	c2 := soroauth.Canonical(b)
+
+	fmt.Println(soroauth.Equal(c1, c2))
+	// Output:
+	// true
+}

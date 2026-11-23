@@ -2,13 +2,11 @@ package soroauth_test
 
 import (
 	"fmt"
+
 	"github.com/soroauth/soroauth-go"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
-
-
-const equalExampleContract = "example-contract"
 
 func ExampleEqual_and_Clone() {
 	orig := soroauth.NewEntry(equalExampleContract, 42)
@@ -18,6 +16,7 @@ func ExampleEqual_and_Clone() {
 	// Output:
 	// true
 }
+
 func ExampleEqual_clone() {
 	var orig xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
@@ -91,18 +90,32 @@ func ExampleClone_deepCopy() {
 	// Output:
 	// clone mutated successfully
 }
-
 const (
-	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+	equalExampleContract = "example-contract"
+	equalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
 )
 
 func ExampleEqual() {
-	fmt.Println("equal")
-	// Output: equal
+	var a, b xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &a)
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &b)
+
+	fmt.Println(soroauth.Equal(a, b))
+	// Output:
+	// true
 }
 
 func ExampleClone() {
-	fmt.Println("clone")
-	// Output: clone
+	var entry xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &entry)
+
+	clone, err := soroauth.Clone(entry)
+	if err != nil {
+		fmt.Printf("error: %v\n", err)
+		return
+	}
+
+	fmt.Println(soroauth.Equal(entry, clone))
+	// Output:
+	// true
 }
-// #650: docs: Go doc examples for Equal and Clone
