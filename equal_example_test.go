@@ -8,8 +8,6 @@ import (
 )
 
 
-
-
 func ExampleEqual_clone() {
 	var orig xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
@@ -25,6 +23,7 @@ func ExampleEqual_clone() {
 	// true
 	// false
 }
+
 func ExampleEqual_and_Clone() {
 	var orig xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
@@ -105,11 +104,6 @@ func ExampleEqual_mismatch() {
 	// Output:
 	// entries are equal: false
 }
-
-const (
-	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
-)
-
 // ExampleEqual demonstrates comparing entries with Equal.
 func ExampleEqual() {
 	var a, b xdr.SorobanAuthorizationEntry
@@ -145,3 +139,7 @@ func ExampleClone() {
 	// Output:
 	// original equals clone after mutation: false
 }
+
+const (
+	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+)
