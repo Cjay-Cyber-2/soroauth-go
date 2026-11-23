@@ -8,6 +8,8 @@ this project adheres to
 
 ## [Unreleased]
 
+- docs: Go doc examples for canonical.go, Equal, Clone, and nonce tracker (#649, #650, #651)
+
 ### Added
 
 - `examples/opentelemetry` traces the whole `rpcflow.SignAndSubmit` flow as one
