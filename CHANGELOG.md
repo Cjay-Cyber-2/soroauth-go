@@ -12,10 +12,6 @@ this project adheres to
 - docs: Go doc examples for Equal and Clone (#650)
 - docs: Go doc examples for the nonce tracker (#651)
 
-- docs: Go doc examples for canonical.go (#649)
-- docs: Go doc examples for Equal and Clone (#650)
-- docs: Go doc examples for the nonce tracker (#651)
-
 ### Added
 
 - `examples/opentelemetry` traces the whole `rpcflow.SignAndSubmit` flow as one
