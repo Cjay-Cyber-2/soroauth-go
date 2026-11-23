@@ -10,8 +10,8 @@ import (
 // when they differ in fields.
 func ExampleEqual_entries() {
 	var a, b xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(exampleGoldenVectorBase64, &a)
-	_ = xdr.SafeUnmarshalBase64(exampleGoldenVectorBase64, &b)
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &a)
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &b)
 
 	// Two identical entries are Equal.
 	fmt.Println("identical:", soroauth.Equal(a, b))
@@ -31,7 +31,7 @@ func ExampleEqual_entries() {
 func ExampleClone_deepCopy() {
 	// Decode or construct an initial entry.
 	var entry xdr.SorobanAuthorizationEntry
-	err := xdr.SafeUnmarshalBase64(exampleGoldenVectorBase64, &entry)
+	err := xdr.SafeUnmarshalBase64(equalExampleVector, &entry)
 	if err != nil {
 		fmt.Println("failed to unmarshal entry")
 		return
