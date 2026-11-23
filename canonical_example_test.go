@@ -48,6 +48,8 @@ func canonicalExampleV2Entry() xdr.SorobanAuthorizationEntry {
 // ExampleMarshalCanonicalJSON shows how two differently-built but semantically
 // equivalent entries (or an entry round-tripped through MarshalCanonicalJSON and
 // UnmarshalCanonicalJSON) canonicalise identically.
+// ExampleMarshalCanonicalJSON shows how two differently-built but semantically
+// equivalent entries canonicalise identically.
 func ExampleMarshalCanonicalJSON() {
 	entry1 := canonicalExampleV2Entry()
 
