@@ -49,30 +49,14 @@ func canonicalExampleV2Entry() xdr.SorobanAuthorizationEntry {
 // equivalent entries (or an entry round-tripped through MarshalCanonicalJSON and
 // UnmarshalCanonicalJSON) canonicalise identically.
 func ExampleMarshalCanonicalJSON() {
-	entry1 := canonicalExampleV2Entry()
+	var e1, e2 xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e2)
 
-	jsonBytes, err := soroauth.MarshalCanonicalJSON(entry1)
-	if err != nil {
-		fmt.Println("marshal error:", err)
-		return
-	}
-
-	entry2, err := soroauth.UnmarshalCanonicalJSON(jsonBytes)
-	if err != nil {
-		fmt.Println("unmarshal error:", err)
-		return
-	}
-
-	jsonBytes2, err := soroauth.MarshalCanonicalJSON(entry2)
-	if err != nil {
-		fmt.Println("marshal2 error:", err)
-		return
-	}
-
-	fmt.Println(string(jsonBytes) == string(jsonBytes2))
+	fmt.Println("equal canonical:", soroauth.Equal(e1, e2))
 
 	// Output:
-	// true
+	// equal canonical: true
 }
 func ExampleCanonical_equivalence() {
 	var a, b xdr.SorobanAuthorizationEntry

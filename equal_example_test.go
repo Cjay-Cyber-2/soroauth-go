@@ -8,6 +8,26 @@ import (
 
 
 
+
+// ExampleEqual_entries shows Equal returning true for identical entries and false
+// when they differ in fields.
+func ExampleEqual_entries() {
+	var a, b xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(exampleGoldenVectorBase64, &a)
+	_ = xdr.SafeUnmarshalBase64(exampleGoldenVectorBase64, &b)
+
+	// Two identical entries are Equal.
+	fmt.Println("identical:", soroauth.Equal(a, b))
+
+	// Mutate b so it differs in invocation fields.
+	b.Credentials.Address.Nonce++
+
+	// Entries differing in signature or metadata are not Equal.
+	fmt.Println("after mutation:", soroauth.Equal(a, b))
+	// Output:
+	// identical: true
+	// after mutation: false
+}
 // ExampleClone_deepCopy demonstrates the deep-copy guarantee of Clone, showing that
 // mutating the returned copy does not affect the original entry.
 func ExampleClone_deepCopy() {
@@ -37,25 +57,7 @@ func ExampleClone_deepCopy() {
 	// clone mutated successfully
 }
 
-// ExampleEqual_entries shows Equal returning true for identical entries and false
-// when they differ in fields.
-func ExampleEqual_entries() {
-	var a, b xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(exampleGoldenVectorBase64, &a)
-	_ = xdr.SafeUnmarshalBase64(exampleGoldenVectorBase64, &b)
 
-	// Two identical entries are Equal.
-	fmt.Println("identical:", soroauth.Equal(a, b))
-
-	// Mutate b so it differs in invocation fields.
-	b.Credentials.Address.Nonce++
-
-	// Entries differing in signature or metadata are not Equal.
-	fmt.Println("after mutation:", soroauth.Equal(a, b))
-	// Output:
-	// identical: true
-	// after mutation: false
-}
 
 // ExampleEqual_mismatch shows Equal returning false for entries differing in fields.
 func ExampleEqual_mismatch() {
