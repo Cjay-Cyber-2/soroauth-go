@@ -14,11 +14,11 @@ func ExampleNonceTracker() {
 	account := "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2H2"
 	var nonce uint64 = 100
 
-	firstUse := tracker.CheckAndRecord(account, nonce)
-	fmt.Println("first use accepted:", firstUse)
+	err1 := tracker.Reserve(nil, account, nonce)
+	fmt.Println("first use accepted:", err1 == nil)
 
-	secondUse := tracker.CheckAndRecord(account, nonce)
-	fmt.Println("second use accepted:", secondUse)
+	err2 := tracker.Reserve(nil, account, nonce)
+	fmt.Println("second use accepted:", err2 == nil)
 
 	// Output:
 	// first use accepted: true
