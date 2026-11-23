@@ -89,6 +89,7 @@ func ExampleClone_deepCopy() {
 	// Output:
 	// clone mutated successfully
 }
+
 const (
 	equalExampleContract = "example-contract"
 	equalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
