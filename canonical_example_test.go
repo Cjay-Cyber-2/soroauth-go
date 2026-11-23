@@ -7,16 +7,6 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
-func ExampleCanonical_equivalence() {
-	var a, b xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &b)
-
-	// Canonical form helpers normalize and equate authorization entries.
-	fmt.Println("equal canonical:", soroauth.Equal(a, b))
-	// Output:
-	// equal canonical: true
-}
 
 func canonicalExampleInvocation() xdr.SorobanAuthorizedInvocation {
 	contract, err := soroauth.ParseAddress(canonicalExampleContract)
@@ -82,6 +72,25 @@ func ExampleMarshalCanonicalJSON() {
 	// Output:
 	// true
 }
+func ExampleCanonical_equivalence() {
+	var a, b xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &b)
+
+	// Canonical form helpers normalize and equate authorization entries.
+	fmt.Println("equal canonical:", soroauth.Equal(a, b))
+	// Output:
+	// equal canonical: true
+}
+
+// canonicalExampleContract and canonicalExampleWallet are defined below with other constants.
+
+
+
+// ExampleMarshalCanonicalJSON shows how two differently-built but semantically
+// equivalent entries (or an entry round-tripped through MarshalCanonicalJSON and
+// UnmarshalCanonicalJSON) canonicalise identically.
+
 
 const (
 	canonicalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
