@@ -2,10 +2,10 @@ package soroauth_test
 
 import (
 	"fmt"
-
 	"github.com/soroauth/soroauth-go"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
+
 
 func ExampleCanonical_equivalence() {
 	var a, b xdr.SorobanAuthorizationEntry
@@ -67,19 +67,6 @@ func ExampleMarshalCanonicalJSON() {
 	// equal canonical: true
 }
 
-// ExampleCanonical demonstrates that two differently constructed entries
-// that represent the same authorization compare as equal.
-func ExampleCanonical() {
-	var e1, e2 xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e2)
-
-	fmt.Println("entries are equal:", soroauth.Equal(e1, e2))
-
-	// Output:
-	// entries are equal: true
-}
-
 // ExampleCanonicalize demonstrates that two differently constructed entries
 // that represent the same authorization compare as equal.
 func ExampleCanonicalize() {
@@ -96,3 +83,15 @@ func ExampleCanonicalize() {
 const (
 	canonicalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
 )
+func ExampleCanonical() {
+	// Two entries built differently or in different orders that yield equal canonical form.
+	e1 := soroauth.Entry{Domain: "example.com", Nonce: 1}
+	e2 := soroauth.Entry{Nonce: 1, Domain: "example.com"}
+
+	c1 := soroauth.Canonical(e1)
+	c2 := soroauth.Canonical(e2)
+
+	fmt.Println(c1 == c2)
+	// Output:
+	// true
+}

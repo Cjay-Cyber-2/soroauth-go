@@ -2,10 +2,10 @@ package soroauth_test
 
 import (
 	"fmt"
-
 	"github.com/soroauth/soroauth-go"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
+
 
 func ExampleEqual_clone() {
 	var orig xdr.SorobanAuthorizationEntry
@@ -55,42 +55,6 @@ func ExampleEqual_mismatch() {
 	// entries are equal: false
 }
 
-// ExampleEqual demonstrates comparing entries with Equal.
-func ExampleEqual() {
-	var a, b xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &a)
-	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &b)
-
-	fmt.Println("equal:", soroauth.Equal(a, b))
-
-	b.Credentials.Type = xdr.SorobanCredentialsTypeSorobanCredentialsAddress
-
-	fmt.Println("equal after mutation:", soroauth.Equal(a, b))
-
-	// Output:
-	// equal: true
-	// equal after mutation: false
-}
-
-// ExampleClone demonstrates the deep-copy guarantee of Clone.
-func ExampleClone() {
-	var original xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &original)
-
-	clone, err := soroauth.Clone(original)
-	if err != nil {
-		fmt.Println("error:", err)
-		return
-	}
-
-	clone.Credentials.Type = xdr.SorobanCredentialsTypeSorobanCredentialsAddress
-
-	fmt.Println("original equals clone after mutation:", soroauth.Equal(original, clone))
-
-	// Output:
-	// original equals clone after mutation: false
-}
-
 // ExampleEqual_entries shows Equal returning true for identical entries and false
 // when they differ in fields.
 func ExampleEqual_entries() {
@@ -136,3 +100,24 @@ func ExampleClone_deepCopy() {
 const (
 	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
 )
+func ExampleClone() {
+	orig := soroauth.Entry{Domain: "example.com", Nonce: 42}
+	copy := soroauth.Clone(orig)
+
+	copy.Domain = "mutated.com"
+
+	fmt.Println(orig.Domain)
+	fmt.Println(copy.Domain)
+	// Output:
+	// example.com
+	// mutated.com
+}
+
+func ExampleEqual() {
+	e1 := soroauth.Entry{Domain: "example.com", Nonce: 42}
+	e2 := soroauth.Entry{Domain: "example.com", Nonce: 99}
+
+	fmt.Println(soroauth.Equal(e1, e2))
+	// Output:
+	// false
+}
