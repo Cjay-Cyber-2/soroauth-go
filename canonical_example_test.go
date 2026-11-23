@@ -8,6 +8,7 @@ import (
 )
 
 
+
 func canonicalExampleInvocation() xdr.SorobanAuthorizedInvocation {
 	contract, err := soroauth.ParseAddress(canonicalExampleContract)
 	if err != nil {
@@ -23,6 +24,7 @@ func canonicalExampleInvocation() xdr.SorobanAuthorizedInvocation {
 		},
 	}
 }
+
 
 func canonicalExampleV2Entry() xdr.SorobanAuthorizationEntry {
 	address, err := soroauth.ParseAddress(canonicalExampleWallet)
@@ -86,19 +88,11 @@ func ExampleCanonical_equivalence() {
 // canonicalExampleContract and canonicalExampleWallet are defined below with other constants.
 
 
-
-// ExampleMarshalCanonicalJSON shows how two differently-built but semantically
-// equivalent entries (or an entry round-tripped through MarshalCanonicalJSON and
-// UnmarshalCanonicalJSON) canonicalise identically.
-
-
 const (
 	canonicalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
 	canonicalExampleContract = "CDLZFC3SJQLJBZM62JUIOA4W344PZZX6O2C5Z2AFAK5Y2X2O3N5J5Q5Q"
-	canonicalExampleWallet   = "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2H2H2"
-)
-const (
-	canonicalVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+	canonicalExampleWallet   = "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2H2"
+	canonicalVector          = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
 )
 
 // ExampleCanonicalize demonstrates that two differently constructed entries
