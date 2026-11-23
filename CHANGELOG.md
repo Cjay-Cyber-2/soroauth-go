@@ -8,7 +8,9 @@ this project adheres to
 
 ## [Unreleased]
 
-- docs: Go doc examples for canonical.go, Equal, Clone, and nonce tracker (#649, #650, #651)
+- docs: Go doc examples for canonical.go (#649)
+- docs: Go doc examples for Equal and Clone (#650)
+- docs: Go doc examples for the nonce tracker (#651)
 
 ### Added
 
