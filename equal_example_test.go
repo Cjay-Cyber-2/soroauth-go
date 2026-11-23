@@ -8,6 +8,7 @@ import (
 )
 
 
+
 func ExampleEqual_and_Clone() {
 	orig := soroauth.NewEntry(equalExampleContract, 42)
 	clone := orig.Clone()
