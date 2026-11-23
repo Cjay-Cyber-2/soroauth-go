@@ -8,6 +8,7 @@ import (
 )
 
 
+
 func ExampleCanonical_equivalence() {
 	var a, b xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
@@ -31,7 +32,6 @@ func ExampleCanonicalize() {
 	// Output:
 	// entries are equal: true
 }
-
 
 // canonicalExampleContract and canonicalExampleWallet are defined below with other constants.
 func canonicalExampleInvocation() xdr.SorobanAuthorizedInvocation {
@@ -84,7 +84,6 @@ func ExampleMarshalCanonicalJSON() {
 }
 
 // canonicalExampleContract and canonicalExampleWallet are defined below with other constants.
-
 const (
 	canonicalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
 	canonicalExampleContract = "CDLZFC3SJQLJBZM62JUIOA4W344PZZX6O2C5Z2AFAK5Y2X2O3N5J5Q5Q"
