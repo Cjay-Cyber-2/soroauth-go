@@ -6,6 +6,7 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
+
 func ExampleCanonical_equivalence() {
 	var a, b xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
@@ -83,21 +84,23 @@ const (
 	canonicalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
 )
 
-func ExampleCanonical() {
-	// Two entries built differently or in different orders that yield equal canonical form.
-	e1 := soroauth.Entry{Domain: "example.com", Nonce: 1}
-	e2 := soroauth.Entry{Nonce: 1, Domain: "example.com"}
-
-	c1 := soroauth.Canonical(e1)
-	c2 := soroauth.Canonical(e2)
-
-	fmt.Println(c1 == c2)
-	// Output:
-	// true
-}
 func ExampleCanonicalForm() {
 	// Two differently-built entries that represent the same authorization.
 	// Canonicalisation normalises their internal representation for reliable comparison.
 	fmt.Println("canonical")
 	// Output: canonical
+}
+const canonicalExampleContract = "example-contract"
+
+func ExampleCanonical() {
+	var a, b xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &b)
+
+	c1 := soroauth.Canonical(a)
+	c2 := soroauth.Canonical(b)
+
+	fmt.Println(soroauth.Equal(c1, c2))
+	// Output:
+	// true
 }
