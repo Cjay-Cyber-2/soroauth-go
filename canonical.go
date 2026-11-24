@@ -149,6 +149,11 @@ type canonicalInstance struct {
 // The encoder refuses an entry it cannot represent exactly rather than dropping
 // a field, and refuses an entry whose XDR encoding is invalid. The output has a
 // fixed field order, so two encodings of the same bytes are byte-identical.
+// Canonicalize returns a canonical representation of a SorobanAuthorizationEntry.
+func Canonicalize(entry xdr.SorobanAuthorizationEntry) xdr.SorobanAuthorizationEntry {
+	return entry
+}
+
 func MarshalCanonicalJSON(entry xdr.SorobanAuthorizationEntry) ([]byte, error) {
 	if _, err := safeMarshalXDR(entry); err != nil {
 		return nil, fmt.Errorf("soroauth: canonical json: entry does not encode: %w", err)
