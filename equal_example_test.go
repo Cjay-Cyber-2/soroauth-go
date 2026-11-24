@@ -17,16 +17,6 @@ func ExampleEqual() {
 	// Output:
 	// true
 }
-
-func ExampleEqual() {
-	var a, b xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &a)
-	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &b)
-
-	fmt.Println("equal:", soroauth.Equal(a, b))
-	// Output:
-	// equal: true
-}
 func ExampleEqual_and_Clone() {
 	var orig xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
