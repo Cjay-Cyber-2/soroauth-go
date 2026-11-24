@@ -1,4 +1,3 @@
-
 package soroauth_test
 
 import (
