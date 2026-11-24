@@ -8,10 +8,11 @@ import (
 )
 
 func ExampleEqual_and_Clone() {
-	orig := soroauth.NewEntry(equalExampleContract, 42)
-	clone := orig.Clone()
+	var orig xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
+	clone, _ := soroauth.Clone(orig)
 
-	fmt.Println(orig.Equal(clone))
+	fmt.Println(soroauth.Equal(orig, clone))
 	// Output:
 	// true
 }
