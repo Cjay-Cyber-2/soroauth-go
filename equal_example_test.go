@@ -7,10 +7,6 @@ import (
 )
 
 
-const (
-	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
-)
-
 func ExampleEqual_and_Clone() {
 	var orig xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
@@ -34,24 +30,6 @@ func ExampleEqual_entries() {
 	// Output:
 	// identical: true
 	// after mutation: false
-}
-
-
-
-func ExampleEqual() {
-	a := xdr.SorobanAuthorizationEntry{}
-	b := xdr.SorobanAuthorizationEntry{}
-	fmt.Println(soroauth.Equal(a, b))
-	// Output:
-	// true
-}
-
-func ExampleClone() {
-	a := xdr.SorobanAuthorizationEntry{}
-	c, _ := soroauth.Clone(a)
-	fmt.Println(soroauth.Equal(a, c))
-	// Output:
-	// true
 }
 
 func ExampleEqual_clone() {
@@ -105,4 +83,23 @@ func ExampleClone_deepCopy() {
 	fmt.Println("clone mutated successfully")
 	// Output:
 	// clone mutated successfully
+}
+const (
+	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+)
+
+func ExampleEqual() {
+	a := xdr.SorobanAuthorizationEntry{}
+	b := xdr.SorobanAuthorizationEntry{}
+	fmt.Println(soroauth.Equal(a, b))
+	// Output:
+	// true
+}
+
+func ExampleClone() {
+	a := xdr.SorobanAuthorizationEntry{}
+	c, _ := soroauth.Clone(a)
+	fmt.Println(soroauth.Equal(a, c))
+	// Output:
+	// true
 }

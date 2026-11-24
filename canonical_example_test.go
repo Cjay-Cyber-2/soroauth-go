@@ -37,6 +37,20 @@ func ExampleCanonical() {
 	// canonical equal: true
 }
 
+func ExampleMarshalCanonicalJSON() {
+	entry := xdr.SorobanAuthorizationEntry{
+		Credentials: xdr.SorobanCredentials{
+			Type: xdr.SorobanCredentialsTypeSorobanCredentialsSourceAccount,
+		},
+	}
+	data, err := soroauth.MarshalCanonicalJSON(entry)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(len(data) > 0)
+	// Output:
+	// true
+}
 func ExampleCanonicalize() {
 	var e1, e2 xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
@@ -47,6 +61,7 @@ func ExampleCanonicalize() {
 	// Output:
 	// entries are equal: true
 }
+
 func canonicalExampleInvocation() xdr.SorobanAuthorizedInvocation {
 	contract, err := soroauth.ParseAddress(canonicalExampleContract)
 	if err != nil {
@@ -87,18 +102,3 @@ const (
 	canonicalExampleContract = "CC7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
 	canonicalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
 )
-
-func ExampleMarshalCanonicalJSON() {
-	entry := xdr.SorobanAuthorizationEntry{
-		Credentials: xdr.SorobanCredentials{
-			Type: xdr.SorobanCredentialsTypeSorobanCredentialsSourceAccount,
-		},
-	}
-	data, err := soroauth.MarshalCanonicalJSON(entry)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(len(data) > 0)
-	// Output:
-	// true
-}
