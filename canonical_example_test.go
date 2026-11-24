@@ -17,6 +17,7 @@ func ExampleCanonicalize() {
 	// Output:
 	// entries are equal: true
 }
+
 func ExampleCanonical_equivalence() {
 	var a, b xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
