@@ -52,6 +52,10 @@ func ExampleEqual_entries() {
 	// after mutation: false
 }
 
+const (
+	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+)
+
 func ExampleClone_deepCopy() {
 	var entry xdr.SorobanAuthorizationEntry
 	err := xdr.SafeUnmarshalBase64(equalExampleVector, &entry)
@@ -74,10 +78,6 @@ func ExampleClone_deepCopy() {
 	// Output:
 	// clone mutated successfully
 }
-
-const (
-	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
-)
 
 func ExampleEqual_and_Clone() {
 	var orig xdr.SorobanAuthorizationEntry
