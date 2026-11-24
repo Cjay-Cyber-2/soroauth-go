@@ -106,6 +106,7 @@ func ExampleClone() {
 	// Output:
 	// true
 }
+
 const (
 	equalExampleContract = "example-contract"
 	equalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="

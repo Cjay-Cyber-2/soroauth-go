@@ -46,6 +46,7 @@ func ExampleCanonical() {
 	// Output:
 	// true
 }
+
 // canonicalExampleContract and canonicalExampleWallet are defined below with other constants.
 func canonicalExampleInvocation() xdr.SorobanAuthorizedInvocation {
 	contract, err := soroauth.ParseAddress(canonicalExampleContract)
