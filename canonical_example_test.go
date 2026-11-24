@@ -6,46 +6,6 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
-func canonicalExampleInvocation() xdr.SorobanAuthorizedInvocation {
-	contract, err := soroauth.ParseAddress(canonicalExampleContract)
-	if err != nil {
-		panic(err)
-	}
-	return xdr.SorobanAuthorizedInvocation{
-		Function: xdr.SorobanAuthorizedFunction{
-			Type: xdr.SorobanAuthorizedFunctionTypeSorobanAuthorizedFunctionTypeContractFn,
-			ContractFn: &xdr.InvokeContractArgs{
-				ContractAddress: contract,
-				FunctionName:    xdr.ScSymbol("transfer"),
-			},
-		},
-	}
-}
-
-func canonicalExampleV2Entry() xdr.SorobanAuthorizationEntry {
-	address, err := soroauth.ParseAddress(canonicalExampleWallet)
-	if err != nil {
-		panic(err)
-	}
-	return xdr.SorobanAuthorizationEntry{
-		Credentials: xdr.SorobanCredentials{
-			Type: xdr.SorobanCredentialsTypeSorobanCredentialsAddressV2,
-			AddressV2: &xdr.SorobanAddressCredentials{
-				Address:                   address,
-				Nonce:                     42,
-				SignatureExpirationLedger: 1000,
-				Signature:                 xdr.ScVal{Type: xdr.ScValTypeScvVoid},
-			},
-		},
-		RootInvocation: canonicalExampleInvocation(),
-	}
-}
-
-const (
-	canonicalExampleWallet   = "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
-	canonicalExampleContract = "CC7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
-	canonicalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
-)
 
 func ExampleCanonical_equivalence() {
 	var a, b xdr.SorobanAuthorizationEntry
@@ -87,6 +47,54 @@ func ExampleCanonicalize() {
 	// Output:
 	// entries are equal: true
 }
+func canonicalExampleInvocation() xdr.SorobanAuthorizedInvocation {
+	contract, err := soroauth.ParseAddress(canonicalExampleContract)
+	if err != nil {
+		panic(err)
+	}
+	return xdr.SorobanAuthorizedInvocation{
+		Function: xdr.SorobanAuthorizedFunction{
+			Type: xdr.SorobanAuthorizedFunctionTypeSorobanAuthorizedFunctionTypeContractFn,
+			ContractFn: &xdr.InvokeContractArgs{
+				ContractAddress: contract,
+				FunctionName:    xdr.ScSymbol("transfer"),
+			},
+		},
+	}
+}
+
+func canonicalExampleV2Entry() xdr.SorobanAuthorizationEntry {
+	address, err := soroauth.ParseAddress(canonicalExampleWallet)
+	if err != nil {
+		panic(err)
+	}
+	return xdr.SorobanAuthorizationEntry{
+		Credentials: xdr.SorobanCredentials{
+			Type: xdr.SorobanCredentialsTypeSorobanCredentialsAddressV2,
+			AddressV2: &xdr.SorobanAddressCredentials{
+				Address:                   address,
+				Nonce:                     42,
+				SignatureExpirationLedger: 1000,
+				Signature:                 xdr.ScVal{Type: xdr.ScValTypeScvVoid},
+			},
+		},
+		RootInvocation: canonicalExampleInvocation(),
+	}
+}
+
+const (
+	canonicalExampleWallet   = "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
+	canonicalExampleContract = "CC7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
+	canonicalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+)
+
+
+
+
+
+
+
+
 
 func ExampleMarshalCanonicalJSON() {
 	entry := xdr.SorobanAuthorizationEntry{
