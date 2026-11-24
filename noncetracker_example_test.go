@@ -12,14 +12,15 @@ const (
 )
 
 func ExampleNewMemoryNonceTracker() {
+	ctx := context.Background()
 	tracker := soroauth.NewMemoryNonceTracker()
-	var nonce uint64 = 100
+	var nonce int64 = 100
 
-	firstUse := tracker.CheckAndRecord(nonce)
-	secondUse := tracker.CheckAndRecord(nonce)
+	err1 := tracker.Reserve(ctx, nonceTrackerExampleKey, nonce)
+	err2 := tracker.Reserve(ctx, nonceTrackerExampleKey, nonce)
 
-	fmt.Println("first use allowed:", firstUse)
-	fmt.Println("second use allowed:", secondUse)
+	fmt.Println("first use allowed:", err1 == nil)
+	fmt.Println("second use allowed:", err2 == nil)
 	// Output:
 	// first use allowed: true
 	// second use allowed: false
