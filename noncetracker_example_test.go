@@ -1,8 +1,11 @@
 
 package soroauth_test
 
-import "fmt"
-import "github.com/soroauth/soroauth-go"
+import (
+	"fmt"
+
+	"github.com/soroauth/soroauth-go"
+)
 
 
 const (
