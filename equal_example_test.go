@@ -6,7 +6,6 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
-
 func ExampleEqual_and_Clone() {
 	var orig xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
@@ -84,22 +83,34 @@ func ExampleClone_deepCopy() {
 	// Output:
 	// clone mutated successfully
 }
-const (
-	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
-)
-
 func ExampleEqual() {
-	a := xdr.SorobanAuthorizationEntry{}
-	b := xdr.SorobanAuthorizationEntry{}
-	fmt.Println(soroauth.Equal(a, b))
+	var a, b xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &a)
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &b)
+
+	fmt.Println("equal:", soroauth.Equal(a, b))
 	// Output:
-	// true
+	// equal: true
 }
 
 func ExampleClone() {
-	a := xdr.SorobanAuthorizationEntry{}
-	c, _ := soroauth.Clone(a)
-	fmt.Println(soroauth.Equal(a, c))
+	var orig xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
+
+	clone, err := soroauth.Clone(orig)
+	if err != nil {
+		panic(err)
+	}
+
+	if clone.Credentials.AddressV2 != nil {
+		clone.Credentials.AddressV2.Nonce = 999
+	}
+
+	fmt.Println("original equals clone after clone mutation:", soroauth.Equal(orig, clone))
 	// Output:
-	// true
+	// original equals clone after clone mutation: false
 }
+
+const (
+	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+)
