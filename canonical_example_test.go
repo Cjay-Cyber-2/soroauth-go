@@ -88,14 +88,6 @@ const (
 	canonicalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
 )
 
-
-
-
-
-
-
-
-
 func ExampleMarshalCanonicalJSON() {
 	entry := xdr.SorobanAuthorizationEntry{
 		Credentials: xdr.SorobanCredentials{

@@ -7,6 +7,10 @@ import (
 )
 
 
+const (
+	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+)
+
 func ExampleEqual_and_Clone() {
 	var orig xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
@@ -16,9 +20,6 @@ func ExampleEqual_and_Clone() {
 	// Output:
 	// true
 }
-const (
-	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
-)
 
 func ExampleEqual_entries() {
 	var a, b xdr.SorobanAuthorizationEntry
