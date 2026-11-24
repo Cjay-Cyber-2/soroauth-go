@@ -8,7 +8,6 @@ import (
 )
 
 
-
 func ExampleEqual_and_Clone() {
 	var orig xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
@@ -92,25 +91,8 @@ func ExampleClone_deepCopy() {
 	// Output:
 	// clone mutated successfully
 }
-
-func ExampleClone() {
-	var entry xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &entry)
-
-	clone, err := soroauth.Clone(entry)
-	if err != nil {
-		fmt.Printf("error: %v\n", err)
-		return
-	}
-
-	fmt.Println(soroauth.Equal(entry, clone))
-	// Output:
-	// true
-}
-
 const (
-	equalExampleContract = "example-contract"
-	equalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
 )
 
 func ExampleEqual() {
@@ -119,6 +101,20 @@ func ExampleEqual() {
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &b)
 
 	fmt.Println(soroauth.Equal(a, b))
+	// Output:
+	// true
+}
+
+func ExampleClone() {
+	var entry xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &entry)
+
+	clone, err := soroauth.Clone(entry)
+	if err != nil {
+		return
+	}
+
+	fmt.Println(soroauth.Equal(entry, clone))
 	// Output:
 	// true
 }
