@@ -1,4 +1,3 @@
-
 package soroauth_test
 
 import (
@@ -25,7 +24,6 @@ func ExampleNewMemoryNonceTracker() {
 	// first use allowed: true
 	// second use allowed: false
 }
-
 func ExampleNonceTracker() {
 	tracker := soroauth.NewMemoryNonceTracker()
 	var nonce uint64 = 42

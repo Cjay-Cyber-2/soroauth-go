@@ -7,6 +7,7 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
+
 func ExampleMarshalCanonicalJSON() {
 	var e1, e2 xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
@@ -89,7 +90,6 @@ func ExampleCanonicalForm() {
 	// Output:
 	// canonical equal: true
 }
-
 func ExampleCanonical() {
 	var e1, e2 xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
