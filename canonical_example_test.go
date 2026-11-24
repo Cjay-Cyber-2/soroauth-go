@@ -7,7 +7,6 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
-
 func ExampleMarshalCanonicalJSON() {
 	var e1, e2 xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
@@ -30,7 +29,6 @@ func ExampleCanonicalize() {
 	// entries are equal: true
 }
 
-// canonicalExampleContract and canonicalExampleWallet are defined below with other constants.
 func canonicalExampleInvocation() xdr.SorobanAuthorizedInvocation {
 	contract, err := soroauth.ParseAddress(canonicalExampleContract)
 	if err != nil {
@@ -71,15 +69,15 @@ func ExampleCanonical_equivalence() {
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &b)
 
-	// Canonical form helpers normalize and equate authorization entries.
 	fmt.Println("equal canonical:", soroauth.Equal(a, b))
 	// Output:
 	// equal canonical: true
 }
 
 const (
-	canonicalExampleWallet = "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
-	canonicalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+	canonicalExampleWallet   = "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
+	canonicalExampleContract = "CC7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
+	canonicalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
 )
 
 func ExampleCanonicalForm() {
@@ -91,6 +89,7 @@ func ExampleCanonicalForm() {
 	// Output:
 	// canonical equal: true
 }
+
 func ExampleCanonical() {
 	var e1, e2 xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
