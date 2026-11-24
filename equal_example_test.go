@@ -7,6 +7,7 @@ import (
 )
 
 
+
 func ExampleEqual_and_Clone() {
 	var orig xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &orig)
@@ -91,11 +92,6 @@ func ExampleClone_deepCopy() {
 	// clone mutated successfully
 }
 
-const (
-	equalExampleContract = "example-contract"
-	equalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
-)
-
 func ExampleClone() {
 	var entry xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &entry)
@@ -110,6 +106,11 @@ func ExampleClone() {
 	// Output:
 	// true
 }
+const (
+	equalExampleContract = "example-contract"
+	equalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+)
+
 func ExampleEqual() {
 	var a, b xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &a)

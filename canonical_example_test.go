@@ -7,6 +7,45 @@ import (
 )
 
 
+
+func ExampleCanonicalForm() {
+	// Two differently-built entries that represent the same authorization.
+	// Canonicalisation normalises their internal representation for reliable comparison.
+	fmt.Println("canonical")
+	// Output: canonical
+}
+
+func ExampleMarshalCanonicalJSON() {
+	var e1, e2 xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e2)
+
+	fmt.Println("equal canonical:", soroauth.Equal(e1, e2))
+
+	// Output:
+	// equal canonical: true
+}
+
+func ExampleCanonicalize() {
+	var e1, e2 xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e2)
+
+	fmt.Println("entries are equal:", soroauth.Equal(e1, e2))
+
+	// Output:
+	// entries are equal: true
+}
+
+func ExampleCanonical() {
+	var e1, e2 xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e2)
+
+	fmt.Println(soroauth.Equal(e1, e2))
+	// Output:
+	// true
+}
 // canonicalExampleContract and canonicalExampleWallet are defined below with other constants.
 func canonicalExampleInvocation() xdr.SorobanAuthorizedInvocation {
 	contract, err := soroauth.ParseAddress(canonicalExampleContract)
@@ -43,13 +82,6 @@ func canonicalExampleV2Entry() xdr.SorobanAuthorizationEntry {
 	}
 }
 
-func ExampleCanonicalForm() {
-	// Two differently-built entries that represent the same authorization.
-	// Canonicalisation normalises their internal representation for reliable comparison.
-	fmt.Println("canonical")
-	// Output: canonical
-}
-
 const (
 	canonicalExampleContract = "example-contract"
 	canonicalExampleWallet   = "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
@@ -65,35 +97,4 @@ func ExampleCanonical_equivalence() {
 	fmt.Println("equal canonical:", soroauth.Equal(a, b))
 	// Output:
 	// equal canonical: true
-}
-
-func ExampleMarshalCanonicalJSON() {
-	var e1, e2 xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e2)
-
-	fmt.Println("equal canonical:", soroauth.Equal(e1, e2))
-
-	// Output:
-	// equal canonical: true
-}
-
-func ExampleCanonicalize() {
-	var e1, e2 xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e2)
-
-	fmt.Println("entries are equal:", soroauth.Equal(e1, e2))
-
-	// Output:
-	// entries are equal: true
-}
-func ExampleCanonical() {
-	var e1, e2 xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e2)
-
-	fmt.Println(soroauth.Equal(e1, e2))
-	// Output:
-	// true
 }
