@@ -1,4 +1,6 @@
 
+package soroauth_test
+
 import "fmt"
 import "github.com/soroauth/soroauth-go"
 
