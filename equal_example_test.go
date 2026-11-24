@@ -2,10 +2,10 @@ package soroauth_test
 
 import (
 	"fmt"
-
 	"github.com/soroauth/soroauth-go"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
+
 
 func ExampleEqual_and_Clone() {
 	var orig xdr.SorobanAuthorizationEntry
@@ -96,16 +96,6 @@ const (
 	equalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
 )
 
-func ExampleEqual() {
-	var a, b xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &a)
-	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &b)
-
-	fmt.Println(soroauth.Equal(a, b))
-	// Output:
-	// true
-}
-
 func ExampleClone() {
 	var entry xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &entry)
@@ -117,6 +107,15 @@ func ExampleClone() {
 	}
 
 	fmt.Println(soroauth.Equal(entry, clone))
+	// Output:
+	// true
+}
+func ExampleEqual() {
+	var a, b xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &a)
+	_ = xdr.SafeUnmarshalBase64(equalExampleVector, &b)
+
+	fmt.Println(soroauth.Equal(a, b))
 	// Output:
 	// true
 }

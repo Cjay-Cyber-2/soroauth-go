@@ -2,10 +2,10 @@ package soroauth_test
 
 import (
 	"fmt"
-
 	"github.com/soroauth/soroauth-go"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
+
 
 // canonicalExampleContract and canonicalExampleWallet are defined below with other constants.
 func canonicalExampleInvocation() xdr.SorobanAuthorizedInvocation {
@@ -88,13 +88,12 @@ func ExampleCanonicalize() {
 	// Output:
 	// entries are equal: true
 }
-
 func ExampleCanonical() {
-	var a, b xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &b)
+	var e1, e2 xdr.SorobanAuthorizationEntry
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
+	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e2)
 
-	fmt.Println(soroauth.Equal(a, b))
+	fmt.Println(soroauth.Equal(e1, e2))
 	// Output:
 	// true
 }
