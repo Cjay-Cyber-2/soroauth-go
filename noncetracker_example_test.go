@@ -1,11 +1,11 @@
 package soroauth_test
 
 import (
-	"fmt"
-	"github.com/soroauth/soroauth-go"
 	"context"
-)
+	"fmt"
 
+	"github.com/soroauth/soroauth-go"
+)
 
 const (
 	nonceTrackerExampleKey = "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
@@ -40,6 +40,7 @@ func ExampleNewInMemoryNonceTracker() {
 	// first reserve error: <nil>
 	// second reserve error: true
 }
+
 func ExampleNonceTracker() {
 	// Note: The default nonce tracker is per-process in-memory unless durable storage is provided.
 	tracker := soroauth.NewNonceTracker()
