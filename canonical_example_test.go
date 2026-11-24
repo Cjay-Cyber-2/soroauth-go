@@ -2,21 +2,10 @@ package soroauth_test
 
 import (
 	"fmt"
-
-	"github.com/soroauth/soroauth-go"
 	"github.com/stellar/go-stellar-sdk/xdr"
+	"github.com/soroauth/soroauth-go"
 )
 
-func ExampleMarshalCanonicalJSON() {
-	var e1, e2 xdr.SorobanAuthorizationEntry
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
-	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e2)
-
-	fmt.Println("equal canonical:", soroauth.Equal(e1, e2))
-
-	// Output:
-	// equal canonical: true
-}
 
 func ExampleCanonicalize() {
 	var e1, e2 xdr.SorobanAuthorizationEntry
@@ -98,4 +87,18 @@ func ExampleCanonical() {
 	fmt.Println("canonical equal:", soroauth.Equal(e1, e2))
 	// Output:
 	// canonical equal: true
+}
+func ExampleMarshalCanonicalJSON() {
+	entry := xdr.SorobanAuthorizationEntry{
+		Credentials: xdr.SorobanCredentials{
+			Type: xdr.SorobanCredentialsTypeSorobanCredentialsSourceAccount,
+		},
+	}
+	data, err := soroauth.MarshalCanonicalJSON(entry)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(len(data) > 0)
+	// Output:
+	// true
 }
