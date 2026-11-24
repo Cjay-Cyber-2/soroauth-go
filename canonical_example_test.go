@@ -12,7 +12,9 @@ func ExampleCanonicalize() {
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e2)
 
-	fmt.Println("entries are equal:", soroauth.Equal(e1, e2))
+	can1 := soroauth.Canonicalize(e1)
+	can2 := soroauth.Canonicalize(e2)
+	fmt.Println("entries are equal:", soroauth.Equal(can1, can2))
 
 	// Output:
 	// entries are equal: true
@@ -23,7 +25,7 @@ func ExampleCanonical_equivalence() {
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &b)
 
-	fmt.Println("equal canonical:", soroauth.Equal(a, b))
+	fmt.Println("equal canonical:", soroauth.Equal(soroauth.Canonicalize(a), soroauth.Canonicalize(b)))
 	// Output:
 	// equal canonical: true
 }
@@ -33,7 +35,7 @@ func ExampleCanonicalForm() {
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e2)
 
-	fmt.Println("canonical equal:", soroauth.Equal(e1, e2))
+	fmt.Println("canonical equal:", soroauth.Equal(soroauth.Canonicalize(e1), soroauth.Canonicalize(e2)))
 	// Output:
 	// canonical equal: true
 }
@@ -43,7 +45,7 @@ func ExampleCanonical() {
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e1)
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &e2)
 
-	fmt.Println("canonical equal:", soroauth.Equal(e1, e2))
+	fmt.Println("canonical equal:", soroauth.Equal(soroauth.Canonicalize(e1), soroauth.Canonicalize(e2)))
 	// Output:
 	// canonical equal: true
 }
