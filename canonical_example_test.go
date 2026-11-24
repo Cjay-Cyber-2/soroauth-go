@@ -88,6 +88,7 @@ func ExampleCanonical() {
 	// Output:
 	// canonical equal: true
 }
+
 func ExampleMarshalCanonicalJSON() {
 	entry := xdr.SorobanAuthorizationEntry{
 		Credentials: xdr.SorobanCredentials{

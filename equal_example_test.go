@@ -98,7 +98,7 @@ func ExampleEqual() {
 
 func ExampleClone() {
 	a := xdr.SorobanAuthorizationEntry{}
-	c := soroauth.Clone(a)
+	c, _ := soroauth.Clone(a)
 	fmt.Println(soroauth.Equal(a, c))
 	// Output:
 	// true
