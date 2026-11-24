@@ -43,15 +43,16 @@ func ExampleNewInMemoryNonceTracker() {
 
 func ExampleNonceTracker() {
 	// Note: The default nonce tracker is per-process in-memory unless durable storage is provided.
-	tracker := soroauth.NewNonceTracker()
+	ctx := context.Background()
+	tracker := soroauth.NewMemoryNonceTracker()
 	account := "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
 	var nonce int64 = 100
 
-	firstUse := tracker.CheckAndRecord(account, nonce)
-	fmt.Println("first use allowed:", firstUse)
+	err1 := tracker.Reserve(ctx, account, nonce)
+	fmt.Println("first use allowed:", err1 == nil)
 
-	secondUse := tracker.CheckAndRecord(account, nonce)
-	fmt.Println("second use allowed:", secondUse)
+	err2 := tracker.Reserve(ctx, account, nonce)
+	fmt.Println("second use allowed:", err2 == nil)
 
 	// Output:
 	// first use allowed: true
