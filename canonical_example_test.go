@@ -94,10 +94,7 @@ func ExampleCanonical() {
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &b)
 
-	c1, _ := soroauth.Canonical(a)
-	c2, _ := soroauth.Canonical(b)
-
-	fmt.Println(soroauth.Equal(c1, c2))
+	fmt.Println(soroauth.Equal(a, b))
 	// Output:
 	// true
 }
