@@ -6,6 +6,9 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
+const (
+	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+)
 
 func ExampleEqual_entries() {
 	var a, b xdr.SorobanAuthorizationEntry
@@ -47,9 +50,6 @@ func ExampleClone() {
 	// Output:
 	// true
 }
-const (
-	equalExampleVector = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
-)
 
 func ExampleEqual_clone() {
 	var orig xdr.SorobanAuthorizationEntry

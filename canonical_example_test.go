@@ -6,7 +6,6 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
-
 func canonicalExampleInvocation() xdr.SorobanAuthorizedInvocation {
 	contract, err := soroauth.ParseAddress(canonicalExampleContract)
 	if err != nil {
@@ -42,6 +41,12 @@ func canonicalExampleV2Entry() xdr.SorobanAuthorizationEntry {
 	}
 }
 
+const (
+	canonicalExampleWallet   = "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
+	canonicalExampleContract = "CC7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
+	canonicalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
+)
+
 func ExampleCanonical_equivalence() {
 	var a, b xdr.SorobanAuthorizationEntry
 	_ = xdr.SafeUnmarshalBase64(canonicalExampleVector, &a)
@@ -71,11 +76,6 @@ func ExampleCanonical() {
 	// Output:
 	// canonical equal: true
 }
-const (
-	canonicalExampleWallet   = "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
-	canonicalExampleContract = "CC7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
-	canonicalExampleVector   = "AAAAAQAAAAEAAAABAAAAAQAAAAEAAAA="
-)
 
 func ExampleCanonicalize() {
 	var e1, e2 xdr.SorobanAuthorizationEntry
