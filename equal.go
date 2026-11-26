@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/stellar/go-stellar-sdk/xdr"
+
+	"github.com/soroauth/soroauth-go/internal/xdrcopy"
 )
 
 // Equal returns true if two SorobanAuthorizationEntry values are XDR byte-
@@ -30,26 +32,13 @@ func Equal(a, b xdr.SorobanAuthorizationEntry) bool {
 }
 
 // Clone returns a deep copy of entry that shares no memory with the input.
-// The copy is produced by round-tripping through XDR encoding, the same method
-// used internally by internal/xdrcopy. The returned value is safe to mutate
-// without affecting the original.
+// The copy is produced by round-tripping through XDR encoding. The returned
+// value is safe to mutate without affecting the original.
 func Clone(entry xdr.SorobanAuthorizationEntry) (xdr.SorobanAuthorizationEntry, error) {
-	// Marshal the entry to XDR bytes.
-	b, err := entry.MarshalBinary()
+	copied, err := xdrcopy.Copy(entry)
 	if err != nil {
-		return xdr.SorobanAuthorizationEntry{}, fmt.Errorf(
-			"soroauth: clone: marshal: %w", err)
+		return xdr.SorobanAuthorizationEntry{}, fmt.Errorf("soroauth: clone: %w", err)
 	}
-
-	// Unmarshal back into a new entry. This allocates fresh memory for every
-	// pointer and slice, yielding a deep copy that shares no storage with the
-	// original.
-	var copied xdr.SorobanAuthorizationEntry
-	if err := xdr.SafeUnmarshal(b, &copied); err != nil {
-		return xdr.SorobanAuthorizationEntry{}, fmt.Errorf(
-			"soroauth: clone: unmarshal: %w", err)
-	}
-
 	return copied, nil
 }
 

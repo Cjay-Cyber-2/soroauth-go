@@ -1,5 +1,7 @@
 # Verification service capacity planning
 
+<!-- cspell:ignore benchtime -->
+
 Size `POST /verify` by the entry shapes the service handles. A single-account
 entry is a useful baseline. Delegate verification also walks the tree and
 returns a verdict for each credential node.

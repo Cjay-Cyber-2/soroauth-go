@@ -34,6 +34,7 @@ navigation.
 | [multi-party-signing](multi-party-signing.md)                   | How three parties sign one delegate tree in sequence, and why the expiration cannot change once anyone has signed. |
 | [verification-limits](verification-limits.md)                   | What `soroauth verify` can and cannot establish offline.                                                           |
 | [verification-service](verification-service.md)                 | How to run the HTTP verification service, and what it will and will not do.                                        |
+| [verification-service-capacity](verification-service-capacity.md) | Measurements and sizing guidance for the HTTP verification service.                                               |
 | [verification-service-runbook](verification-service-runbook.md) | How to configure, monitor, drain, and troubleshoot the verification service.                                       |
 | [sdk-support](sdk-support.md)                                   | Which `go-stellar-sdk` versions are supported and how the pin moves.                                               |
 | [compatibility](compatibility.md)                               | Which Go, CLI, JSON, vector, wire, and SDK surfaces are compatibility promises.                                    |
