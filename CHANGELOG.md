@@ -13,8 +13,8 @@ this project adheres to
 - Runnable Go examples show how to compare canonical JSON, distinguish entries
   by signature, mutate a cloned entry, and reserve a nonce before signing.
   (#649, #650, #651, PR #702)
-- Add a verification-service capacity guide with measured request costs by
-  entry shape and a repeatable benchmark. (#648)
+- Add a verification-service capacity guide with measured request costs by entry
+  shape and a repeatable benchmark. (#648)
 
 - `HostRules` enumerates every rule the Soroban host enforces on an
   authorization entry, each with its `rs-soroban-env` source citation, and marks
