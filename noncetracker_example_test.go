@@ -2,59 +2,32 @@ package soroauth_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/soroauth/soroauth-go"
 )
 
-const (
-	nonceTrackerExampleKey = "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
-)
+const nonceTrackerExampleAddress = "GASI5PH5KDJFVFU4XGLLRGRNA426GVNZQCLA6PENWMAJRJ4JC3GC4CQ5"
 
-func ExampleNewMemoryNonceTracker() {
-	ctx := context.Background()
-	tracker := soroauth.NewMemoryNonceTracker()
-	var nonce int64 = 100
-
-	err1 := tracker.Reserve(ctx, nonceTrackerExampleKey, nonce)
-	err2 := tracker.Reserve(ctx, nonceTrackerExampleKey, nonce)
-
-	fmt.Println("first use allowed:", err1 == nil)
-	fmt.Println("second use allowed:", err2 == nil)
-	// Output:
-	// first use allowed: true
-	// second use allowed: false
-}
-
+// ExampleNewInMemoryNonceTracker reserves a nonce before signing. Each
+// in-memory tracker keeps process-local reservations. Use a NonceTracker
+// backed by a shared durable store to retain reservations across restarts
+// and share them among signing processes.
 func ExampleNewInMemoryNonceTracker() {
-	ctx := context.Background()
 	tracker := soroauth.NewInMemoryNonceTracker()
-	var nonce int64 = 100
-
-	err1 := tracker.Reserve(ctx, nonceTrackerExampleKey, nonce)
-	err2 := tracker.Reserve(ctx, nonceTrackerExampleKey, nonce)
-
-	fmt.Println("first reserve error:", err1)
-	fmt.Println("second reserve error:", err2 != nil)
-	// Output:
-	// first reserve error: <nil>
-	// second reserve error: true
-}
-
-func ExampleNonceTracker() {
-	// Note: The default nonce tracker is per-process in-memory unless durable storage is provided.
 	ctx := context.Background()
-	tracker := soroauth.NewMemoryNonceTracker()
-	account := "GAB7BCQ72A23Z3BXTJVRW66JXYW25J6Y3D7V3X6X44J6H2H2H2H2"
-	var nonce int64 = 100
+	const nonce = 42
 
-	err1 := tracker.Reserve(ctx, account, nonce)
-	fmt.Println("first use allowed:", err1 == nil)
+	if err := tracker.Reserve(ctx, nonceTrackerExampleAddress, nonce); err != nil {
+		panic(err)
+	}
+	fmt.Println("first reservation accepted")
 
-	err2 := tracker.Reserve(ctx, account, nonce)
-	fmt.Println("second use allowed:", err2 == nil)
+	err := tracker.Reserve(ctx, nonceTrackerExampleAddress, nonce)
+	fmt.Println("repeat refused:", errors.Is(err, soroauth.ErrNonceAlreadyReserved))
 
 	// Output:
-	// first use allowed: true
-	// second use allowed: false
+	// first reservation accepted
+	// repeat refused: true
 }

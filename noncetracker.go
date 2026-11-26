@@ -52,11 +52,6 @@ type inMemoryNonceTracker struct {
 	reserved map[string]map[int64]struct{}
 }
 
-// NewMemoryNonceTracker is an alias for NewInMemoryNonceTracker.
-func NewMemoryNonceTracker() NonceTracker {
-	return NewInMemoryNonceTracker()
-}
-
 // NewInMemoryNonceTracker returns a NonceTracker backed by an in-process
 // map.
 //

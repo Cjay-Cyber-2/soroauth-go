@@ -8,14 +8,11 @@ this project adheres to
 
 ## [Unreleased]
 
-- docs: Go doc examples for canonical.go (#649)
-- docs: Go doc examples for Equal and Clone (#650)
-- docs: Go doc examples for the nonce tracker (#651)
-- Fix PR #702: update noncetracker_example_test.go (#651)
-- Fix PR #702: update equal_example_test.go (#650)
-- Fix PR #702: update canonical_example_test.go (#649)
-
 ### Added
+
+- Runnable Go examples show how to compare canonical JSON, distinguish entries
+  by signature, mutate a cloned entry, and reserve a nonce before signing.
+  (#649, #650, #651)
 
 - `HostRules` enumerates every rule the Soroban host enforces on an
   authorization entry, each with its `rs-soroban-env` source citation, and marks
@@ -202,6 +199,9 @@ this project adheres to
   `RateLimitMode`, for remote signers behind a provider quota. (#329)
 
 ### Fixed
+
+- `Clone` decodes the binary XDR produced by its encoder so it can return an
+  independent copy of the original authorization entry. (#650)
 
 - The `delegates_chain_depth_57` golden vector claimed to be the deepest
   delegate nesting the library accepts end to end, but soroauth signed that
